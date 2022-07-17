@@ -19,7 +19,7 @@ class SimpleGameCaseTest extends AbstractSessionTest {
     @Test
     void simpleGame() throws Exception {
         // given
-        var moderator = new PlayerJoystick(DEFAULT_USER_NAME, session);
+        var moderator = new ModeratorJoystick(DEFAULT_USER_NAME, session);
         var player = new PlayerJoystick("SomePlayer", createSession("SomePlayer"));
 
         // step 1 - moderator creates room
@@ -39,7 +39,7 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
         assertThat(moderatorRoomEvent, is(notNullValue()));
         assertThat(moderatorRoomEvent.room(), is(notNullValue()));
-        assertThat(moderatorRoomEvent.room().players(), containsInAnyOrder(moderator.playerName, player.playerName));
+        assertThat(moderatorRoomEvent.room().players(), containsInAnyOrder(player.playerName));
         assertThat(moderatorRoomEvent.room().ongoingQuiz(), is(nullValue()));
 
         player.subscribeToRoomEvents();
@@ -53,13 +53,12 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
         assertThat(moderatorRoomEvent, is(notNullValue()));
         assertThat(moderatorRoomEvent.room(), is(notNullValue()));
-        assertThat(moderatorRoomEvent.room().players(), containsInAnyOrder(moderator.playerName, player.playerName));
+        assertThat(moderatorRoomEvent.room().players(), containsInAnyOrder(player.playerName));
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
         assertThat(ongoingQuiz, is(notNullValue()));
         assertThat(ongoingQuiz.currentQuestion(), is(0));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.NOT_STARTED));
-        assertThat(ongoingQuiz.points(), is(aMapWithSize(2)));
-        assertThat(ongoingQuiz.points(), hasEntry(moderator.playerName, 0));
+        assertThat(ongoingQuiz.points(), is(aMapWithSize(1)));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 0));
         assertThat(ongoingQuiz.quiz(), is(notNullValue()));
 
@@ -79,6 +78,18 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         assertThat(ongoingQuiz.currentQuestion(), is(1));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
 
+        // step 5 - player makes choice
+        var makeChoiceResponse = player.vote(2);
+        assertThat(makeChoiceResponse.ok(), is(true));
+
+        moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+        // no event broadcasting here
+        assertThat(moderatorRoomEvent, is(nullValue()));
+        assertThat(playerRoomEvent, is(nullValue()));
+
+
     }
 
     @Test
@@ -93,35 +104,48 @@ class SimpleGameCaseTest extends AbstractSessionTest {
 
     @Test
     void doesNotSendResponsesToAnotherSession() {
-        var moderator = new PlayerJoystick(DEFAULT_USER_NAME, session);
-        var player = new PlayerJoystick("SomePlayer", createSession("SomePlayer"));
+        var moderator = new ModeratorJoystick(DEFAULT_USER_NAME, session);
+        var player = new PlayerJoystick("player", createSession("player"));
+        var anotherPlayer = new PlayerJoystick("player2", createSession("player2"));
 
         var roomCode = moderator.createRoom().code();
-        moderator.setRoom(roomCode);
+        player.setRoom(roomCode);
 
         var anotherSessionJoinRoomResponseFuture =
-                expectResponse(player.session, "/user/queue/responses/rooms.join", JoinRoomResponse.class);
+                expectResponse(anotherPlayer.session, "/user/queue/responses/rooms.join", JoinRoomResponse.class);
 
-        JoinRoomResponse responseForDefaultSession = moderator.joinRoom();
-        JoinRoomResponse responseForAnotherSession = getImmediatelyAndSafely(anotherSessionJoinRoomResponseFuture);
+        JoinRoomResponse responseForPlayer = player.joinRoom();
+        JoinRoomResponse responseForAnotherPlayer = getImmediatelyAndSafely(anotherSessionJoinRoomResponseFuture);
 
-        assertThat(responseForDefaultSession, is(notNullValue()));
-        assertThat(responseForAnotherSession, is(nullValue()));
+        assertThat(responseForPlayer, is(notNullValue()));
+        assertThat(responseForAnotherPlayer, is(nullValue()));
     }
 
-    private class PlayerJoystick {
+    private abstract class Joystick {
 
-        private final String playerName;
-        private final StompSession session;
+        final String playerName;
+        final StompSession session;
 
         @Setter
-        private String room;
+        protected String room;
 
-        private BlockingQueue<RoomEvent> events;
+        BlockingQueue<RoomEvent> events;
 
-        public PlayerJoystick(String playerName, StompSession session) {
+        public Joystick(String playerName, StompSession session) {
             this.playerName = playerName;
             this.session = session;
+        }
+
+        public void subscribeToRoomEvents() {
+            events = subscribe(session, "/topic/rooms." + room, RoomEvent.class);
+        }
+
+    }
+
+    private class ModeratorJoystick extends Joystick {
+
+        private ModeratorJoystick(String playerName, StompSession session) {
+            super(playerName, session);
         }
 
         private CreateRoomResponse createRoom() {
@@ -134,6 +158,34 @@ class SimpleGameCaseTest extends AbstractSessionTest {
             return requestAndWaitForReply(params);
         }
 
+        private AssignQuizResponse assignQuiz() {
+            var params = RequestReplyOperationParams.<AssignQuizRequest, AssignQuizResponse>builder()
+                    .session(session)
+                    .operation("rooms.quiz.assign")
+                    .request(new AssignQuizRequest(room, 1))
+                    .responseClass(AssignQuizResponse.class)
+                    .build();
+            return requestAndWaitForReply(params);
+        }
+
+        public StartQuizResponse startQuiz() {
+            var params = RequestReplyOperationParams.<StartQuizRequest, StartQuizResponse>builder()
+                    .session(session)
+                    .operation("rooms.quiz.start")
+                    .request(new StartQuizRequest(room))
+                    .responseClass(StartQuizResponse.class)
+                    .build();
+            return requestAndWaitForReply(params);
+        }
+
+    }
+
+    private class PlayerJoystick extends Joystick {
+
+        private PlayerJoystick(String playerName, StompSession session) {
+            super(playerName, session);
+        }
+
         private JoinRoomResponse joinRoom() {
             var params = RequestReplyOperationParams.<JoinRoomRequest, JoinRoomResponse>builder()
                     .session(session)
@@ -144,26 +196,13 @@ class SimpleGameCaseTest extends AbstractSessionTest {
             return requestAndWaitForReply(params);
         }
 
-        private void subscribeToRoomEvents() {
-            events = subscribe(session, "/topic/rooms." + room, RoomEvent.class);
-        }
 
-        private AssignQuizResponse assignQuiz() {
-            var params = RequestReplyOperationParams.<AssignQuizRequest, AssignQuizResponse>builder()
+        public VoteResponse vote(int choice) {
+            var params = RequestReplyOperationParams.<VoteRequest, VoteResponse>builder()
                     .session(session)
-                    .operation("rooms.assign-quiz")
-                    .request(new AssignQuizRequest(room, 1))
-                    .responseClass(AssignQuizResponse.class)
-                    .build();
-            return requestAndWaitForReply(params);
-        }
-
-        public StartQuizResponse startQuiz() {
-            var params = RequestReplyOperationParams.<StartQuizRequest, StartQuizResponse>builder()
-                    .session(session)
-                    .operation("rooms.start-quiz")
-                    .request(new StartQuizRequest(room))
-                    .responseClass(StartQuizResponse.class)
+                    .operation("rooms.quiz.vote")
+                    .request(new VoteRequest(room, choice))
+                    .responseClass(VoteResponse.class)
                     .build();
             return requestAndWaitForReply(params);
         }

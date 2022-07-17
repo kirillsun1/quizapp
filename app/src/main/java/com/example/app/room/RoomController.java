@@ -26,18 +26,25 @@ public class RoomController {
         return new JoinRoomResponse(ok);
     }
 
-    @MessageMapping("/rooms.assign-quiz")
+    @MessageMapping("/rooms.quiz.assign")
     @SendToUser(broadcast = false)
     public AssignQuizResponse assignQuiz(UserName userName, AssignQuizRequest request) {
         var ok = roomService.assignQuiz(userName.value(), request.roomCode(), request.quizId());
         return new AssignQuizResponse(ok);
     }
 
-    @MessageMapping("/rooms.start-quiz")
+    @MessageMapping("/rooms.quiz.start")
     @SendToUser(broadcast = false)
     public StartQuizResponse startQuiz(UserName userName, StartQuizRequest request) {
         var ok = roomService.startQuiz(userName.value(), request.roomCode());
         return new StartQuizResponse(ok);
+    }
+
+    @MessageMapping("/rooms.quiz.vote")
+    @SendToUser(broadcast = false)
+    public VoteResponse vote(UserName userName, VoteRequest request) {
+        var ok = roomService.vote(userName.value(), request.roomCode(), request.choice());
+        return new VoteResponse(ok);
     }
 
 }

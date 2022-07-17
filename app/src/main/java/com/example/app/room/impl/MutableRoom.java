@@ -5,7 +5,9 @@ import com.example.app.room.OngoingQuizStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -26,5 +28,8 @@ public class MutableRoom {
 
     @Builder.Default
     private int currentQuestion = 0;
+
+    @Builder.Default
+    private Map<Integer, Map<String, Integer>> votesByQuestions = new HashMap<>();
 
 }

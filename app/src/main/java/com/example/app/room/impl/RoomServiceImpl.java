@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 @Service
@@ -29,7 +30,6 @@ public class RoomServiceImpl implements RoomService {
                 .code(uniqueCode)
                 .moderator(moderator)
                 .build();
-        room.getPlayersPoints().put(moderator, 0);
         roomRepository.save(room);
         return roomMapper.toPublic(room);
     }
@@ -40,39 +40,53 @@ public class RoomServiceImpl implements RoomService {
         if (roomOptional.isEmpty()) {
             return false;
         }
+
         roomOptional.get().getPlayersPoints().putIfAbsent(player, 0);
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
-
         return true;
     }
 
     @Override
     public boolean assignQuiz(String requester, String code, int quizId) {
         Optional<MutableRoom> roomOptional = findRoom(requester, code);
-
         if (roomOptional.isEmpty() || quizRepository.findById(quizId).isEmpty()) {
             return false;
         }
 
         roomOptional.get().setQuizId(quizId);
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
-
         return true;
     }
 
     @Override
     public boolean startQuiz(String requester, String code) {
         Optional<MutableRoom> roomOptional = findRoom(requester, code);
-
         if (roomOptional.isEmpty()) {
             return false;
         }
 
         MutableRoom room = roomOptional.get();
-        room.setCurrentQuestion(room.getCurrentQuestion() + 1);
+        int currentQuestion = room.getCurrentQuestion() + 1;
+        room.setCurrentQuestion(currentQuestion);
         room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
+        room.getVotesByQuestions().put(currentQuestion, new HashMap<>());
 
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+        return true;
+    }
+
+    @Override
+    public boolean vote(String requester, String roomCode, int choice) {
+        Optional<MutableRoom> roomOptional = roomRepository.findByCode(roomCode);
+        if (roomOptional.isEmpty()) {
+            return false;
+        }
+        var room = roomOptional.get();
+        if (room.getModerator().equals(requester)) {
+            return false;
+        }
+
+        room.getVotesByQuestions().get(room.getCurrentQuestion()).put(requester, choice);
         return true;
     }
 
