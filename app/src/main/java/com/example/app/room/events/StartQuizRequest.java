@@ -1,4 +1,4 @@
 package com.example.app.room.events;
 
-public record StartQuizRequest(String roomCode) {
+public record StartQuizRequest() {
 }

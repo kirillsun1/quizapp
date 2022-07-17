@@ -6,10 +6,10 @@ import com.example.app.room.events.AssignQuizRequest;
 import com.example.app.room.events.AssignQuizResponse;
 import com.example.app.room.events.CreateRoomRequest;
 import com.example.app.room.events.CreateRoomResponse;
-import com.example.app.room.events.MoveOnRequest;
-import com.example.app.room.events.MoveOnResponse;
 import com.example.app.room.events.JoinRoomRequest;
 import com.example.app.room.events.JoinRoomResponse;
+import com.example.app.room.events.MoveOnRequest;
+import com.example.app.room.events.MoveOnResponse;
 import com.example.app.room.events.RoomEvent;
 import com.example.app.room.events.StartQuizRequest;
 import com.example.app.room.events.StartQuizResponse;
@@ -63,8 +63,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             return RequestReplyOperation.<AssignQuizRequest, AssignQuizResponse>builder()
                     .responseMessagesListener(createListener(AssignQuizResponse.class))
                     .session(session)
-                    .operation("rooms.quiz.assign")
-                    .request(new AssignQuizRequest(room, 1))
+                    .operation("rooms/" + room + "/quiz.assign")
+                    .request(new AssignQuizRequest(1))
                     .build()
                     .execute();
         }
@@ -73,8 +73,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             return RequestReplyOperation.<StartQuizRequest, StartQuizResponse>builder()
                     .responseMessagesListener(createListener(StartQuizResponse.class))
                     .session(session)
-                    .operation("rooms.quiz.start")
-                    .request(new StartQuizRequest(room))
+                    .operation("rooms/" + room + "/quiz.start")
+                    .request(new StartQuizRequest())
                     .build()
                     .execute();
         }
@@ -83,8 +83,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             return RequestReplyOperation.<MoveOnRequest, MoveOnResponse>builder()
                     .responseMessagesListener(createListener(MoveOnResponse.class))
                     .session(session)
-                    .operation("rooms.quiz.move-on")
-                    .request(new MoveOnRequest(room))
+                    .operation("rooms/" + room + "/quiz.move-on")
+                    .request(new MoveOnRequest())
                     .build()
                     .execute();
         }
@@ -100,8 +100,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             return RequestReplyOperation.<JoinRoomRequest, JoinRoomResponse>builder()
                     .responseMessagesListener(createListener(JoinRoomResponse.class))
                     .session(session)
-                    .operation("rooms.join")
-                    .request(new JoinRoomRequest(room))
+                    .operation("rooms/" + room + ".join")
+                    .request(new JoinRoomRequest())
                     .build()
                     .execute();
         }
@@ -110,8 +110,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             return RequestReplyOperation.<VoteRequest, VoteResponse>builder()
                     .responseMessagesListener(createListener(VoteResponse.class))
                     .session(session)
-                    .operation("rooms.quiz.vote")
-                    .request(new VoteRequest(room, choice))
+                    .operation("rooms/" + room + "/quiz.vote")
+                    .request(new VoteRequest(choice))
                     .build()
                     .execute();
         }
