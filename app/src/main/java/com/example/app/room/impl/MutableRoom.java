@@ -21,8 +21,6 @@ public class MutableRoom {
     @Builder.Default
     private Map<String, Integer> playersPoints = new HashMap<>();
 
-
-    // TODO: decouple from ongoing quiz status?
     @Builder.Default
     private OngoingQuizStatus status = OngoingQuizStatus.NOT_STARTED;
 
