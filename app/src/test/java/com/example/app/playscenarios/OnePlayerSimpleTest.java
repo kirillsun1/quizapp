@@ -125,8 +125,8 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
     }
 
     private void moderatorStartsQuiz() throws Exception {
-        var startQuizResponse = moderator.startQuiz();
-        assertThat(startQuizResponse.ok(), is(true));
+        var moveOnResponse = moderator.moveOn();
+        assertThat(moveOnResponse.ok(), is(true));
 
         var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
         var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);

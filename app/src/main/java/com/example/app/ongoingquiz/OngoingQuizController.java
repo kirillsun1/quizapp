@@ -3,7 +3,6 @@ package com.example.app.ongoingquiz;
 import com.example.app.core.BaseGameException;
 import com.example.app.core.UserName;
 import com.example.app.ongoingquiz.events.MoveOnResponse;
-import com.example.app.ongoingquiz.events.StartQuizResponse;
 import com.example.app.ongoingquiz.events.VoteRequest;
 import com.example.app.ongoingquiz.events.VoteResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,17 +16,6 @@ import org.springframework.stereotype.Controller;
 public class OngoingQuizController {
 
     private final OngoingQuizService ongoingQuizService;
-
-    @MessageMapping("/rooms/{roomCode}/quiz.start")
-    @SendToUser(broadcast = false)
-    public StartQuizResponse startQuiz(UserName userName, @DestinationVariable String roomCode) {
-        try {
-            ongoingQuizService.start(userName.value(), roomCode);
-            return new StartQuizResponse(true);
-        } catch (BaseGameException ex) {
-            return new StartQuizResponse(false);
-        }
-    }
 
     @MessageMapping("/rooms/{roomCode}/quiz.vote")
     @SendToUser(broadcast = false)

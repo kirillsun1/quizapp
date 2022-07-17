@@ -2,19 +2,17 @@ package com.example.app.playscenarios;
 
 import com.example.app.AbstractSessionTest;
 import com.example.app.RequestReplyOperation;
+import com.example.app.ongoingquiz.events.MoveOnRequest;
+import com.example.app.ongoingquiz.events.MoveOnResponse;
+import com.example.app.ongoingquiz.events.VoteRequest;
+import com.example.app.ongoingquiz.events.VoteResponse;
 import com.example.app.room.events.AssignQuizRequest;
 import com.example.app.room.events.AssignQuizResponse;
 import com.example.app.room.events.CreateRoomRequest;
 import com.example.app.room.events.CreateRoomResponse;
 import com.example.app.room.events.JoinRoomRequest;
 import com.example.app.room.events.JoinRoomResponse;
-import com.example.app.ongoingquiz.events.MoveOnRequest;
-import com.example.app.ongoingquiz.events.MoveOnResponse;
 import com.example.app.room.events.RoomEvent;
-import com.example.app.ongoingquiz.events.StartQuizRequest;
-import com.example.app.ongoingquiz.events.StartQuizResponse;
-import com.example.app.ongoingquiz.events.VoteRequest;
-import com.example.app.ongoingquiz.events.VoteResponse;
 import lombok.Setter;
 import org.springframework.messaging.simp.stomp.StompSession;
 
@@ -65,16 +63,6 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
                     .session(session)
                     .operation("rooms/" + room + "/quiz.assign")
                     .request(new AssignQuizRequest(id))
-                    .build()
-                    .execute();
-        }
-
-        public StartQuizResponse startQuiz() {
-            return RequestReplyOperation.<StartQuizRequest, StartQuizResponse>builder()
-                    .responseMessagesListener(createListener(StartQuizResponse.class))
-                    .session(session)
-                    .operation("rooms/" + room + "/quiz.start")
-                    .request(new StartQuizRequest())
                     .build()
                     .execute();
         }

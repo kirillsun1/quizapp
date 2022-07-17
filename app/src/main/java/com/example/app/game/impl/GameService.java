@@ -1,5 +1,6 @@
 package com.example.app.game.impl;
 
+import com.example.app.game.impl.events.RoomChangedEvent;
 import com.example.app.ongoingquiz.OngoingQuizService;
 import com.example.app.ongoingquiz.OngoingQuizStatus;
 import com.example.app.ongoingquiz.exceptions.ModeratorIsNotPlayerException;
@@ -7,7 +8,6 @@ import com.example.app.ongoingquiz.exceptions.PlayerIsNotModeratorException;
 import com.example.app.quiz.QuizRepository;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
-import com.example.app.game.impl.events.RoomChangedEvent;
 import com.example.app.room.exceptions.QuizNotFoundException;
 import com.example.app.room.exceptions.RoomNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -56,13 +56,6 @@ class GameService implements RoomService, OngoingQuizService {
     }
 
     @Override
-    public void start(String requester, String code) {
-        MutableRoom room = findRoomForModerator(requester, code);
-        moveToQuestion(room, 0);
-        eventPublisher.publishEvent(new RoomChangedEvent(code));
-    }
-
-    @Override
     public void vote(String requester, String roomCode, int choice) {
         MutableRoom room = roomRepository.findByCode(roomCode).orElseThrow(RoomNotFoundException::new);
         if (room.getModerator().equals(requester)) {
@@ -77,6 +70,10 @@ class GameService implements RoomService, OngoingQuizService {
 
         boolean sendEvent = false;
         switch (room.getStatus()) {
+            case NOT_STARTED -> {
+                moveToQuestion(room, 0);
+                sendEvent = true;
+            }
             case WAITING -> {
                 moveToQuestion(room, room.getCurrentQuestion() + 1);
                 sendEvent = true;
