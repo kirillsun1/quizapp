@@ -5,19 +5,21 @@ import com.example.app.room.OngoingQuizService;
 import com.example.app.room.OngoingQuizStatus;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
-import com.example.app.room.UniqueRoomCodeGenerator;
 import com.example.app.room.events.internal.RoomChangedInternalEvent;
+import com.example.app.room.exceptions.ModeratorIsNotPlayerException;
+import com.example.app.room.exceptions.PlayerIsNotModeratorException;
+import com.example.app.room.exceptions.QuizNotFoundException;
+import com.example.app.room.exceptions.RoomNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class RoomServiceImpl implements RoomService, OngoingQuizService {
+public class GameService implements RoomService, OngoingQuizService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final MutableRoomRepository roomRepository;
@@ -37,66 +39,41 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
     }
 
     @Override
-    public boolean joinRoom(String code, String player) {
-        Optional<MutableRoom> roomOptional = roomRepository.findByCode(code);
-        if (roomOptional.isEmpty()) {
-            return false;
-        }
-
-        roomOptional.get().getPlayersPoints().putIfAbsent(player, 0);
+    public void joinRoom(String code, String player) {
+        var room = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
+        room.getPlayersPoints().putIfAbsent(player, 0);
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
-        return true;
     }
 
     @Override
-    public boolean assignQuiz(String requester, String code, int quizId) {
-        Optional<MutableRoom> roomOptional = findRoom(requester, code);
-        if (roomOptional.isEmpty() || quizRepository.findById(quizId).isEmpty()) {
-            return false;
+    public void assignQuiz(String requester, String code, int quizId) {
+        MutableRoom room = findRoomForModerator(requester, code);
+        if (quizRepository.findById(quizId).isEmpty()) {
+            throw new QuizNotFoundException();
         }
-
-        roomOptional.get().setQuizId(quizId);
+        room.setQuizId(quizId);
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
-        return true;
     }
 
     @Override
-    public boolean start(String requester, String code) {
-        Optional<MutableRoom> roomOptional = findRoom(requester, code);
-        if (roomOptional.isEmpty()) {
-            return false;
-        }
-
-        MutableRoom room = roomOptional.get();
+    public void start(String requester, String code) {
+        MutableRoom room = findRoomForModerator(requester, code);
         moveToQuestion(room, 0);
-
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
-        return true;
     }
 
     @Override
-    public boolean vote(String requester, String roomCode, int choice) {
-        Optional<MutableRoom> roomOptional = roomRepository.findByCode(roomCode);
-        if (roomOptional.isEmpty()) {
-            return false;
-        }
-        var room = roomOptional.get();
+    public void vote(String requester, String roomCode, int choice) {
+        MutableRoom room = roomRepository.findByCode(roomCode).orElseThrow(RoomNotFoundException::new);
         if (room.getModerator().equals(requester)) {
-            return false;
+            throw new ModeratorIsNotPlayerException();
         }
-
         room.getVotesByQuestions().get(room.getCurrentQuestion()).put(requester, choice);
-        return true;
     }
 
     @Override
-    public boolean moveOn(String requester, String code) {
-        Optional<MutableRoom> roomOptional = findRoom(requester, code);
-        if (roomOptional.isEmpty()) {
-            return false;
-        }
-
-        MutableRoom room = roomOptional.get();
+    public void moveOn(String requester, String code) {
+        MutableRoom room = findRoomForModerator(requester, code);
 
         boolean sendEvent = false;
         switch (room.getStatus()) {
@@ -113,7 +90,6 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
         if (sendEvent) {
             eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
         }
-        return true;
     }
 
 
@@ -124,7 +100,7 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
     }
 
     private void finishRound(MutableRoom room) {
-        var quiz = quizRepository.findById(room.getQuizId()).orElseThrow();
+        var quiz = quizRepository.findById(room.getQuizId()).orElseThrow(QuizNotFoundException::new);
 
         if (room.getCurrentQuestion() == quiz.questions().size() - 1) {
             // last question
@@ -150,9 +126,12 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
                 });
     }
 
-    private Optional<MutableRoom> findRoom(String requester, String code) {
-        return roomRepository.findByCode(code)
-                .filter(room -> requester.equals(room.getModerator()));
+    private MutableRoom findRoomForModerator(String requester, String code) {
+        MutableRoom mutableRoom = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
+        if (!requester.equals(mutableRoom.getModerator())) {
+            throw new PlayerIsNotModeratorException();
+        }
+        return mutableRoom;
     }
 
 }

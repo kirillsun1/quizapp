@@ -1,5 +1,6 @@
 package com.example.app.room;
 
+import com.example.app.room.impl.UniqueRoomCodeGenerator;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

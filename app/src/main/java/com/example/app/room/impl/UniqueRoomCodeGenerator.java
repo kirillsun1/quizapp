@@ -1,4 +1,4 @@
-package com.example.app.room;
+package com.example.app.room.impl;
 
 import org.springframework.stereotype.Component;
 
