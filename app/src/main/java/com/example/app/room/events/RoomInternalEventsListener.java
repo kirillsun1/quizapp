@@ -1,6 +1,5 @@
-package com.example.app.room.events.internal;
+package com.example.app.room.events;
 
-import com.example.app.room.events.RoomEvent;
 import com.example.app.room.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

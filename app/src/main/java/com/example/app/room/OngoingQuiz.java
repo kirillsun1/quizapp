@@ -1,5 +1,6 @@
-package com.example.app.quiz;
+package com.example.app.room;
 
+import com.example.app.quiz.Quiz;
 import lombok.Builder;
 
 import java.util.Map;

@@ -3,27 +3,36 @@ package com.example.app.room;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 class UniqueRoomCodeGeneratorTest {
+
+    @Test
+    void hasOnlyDigits() {
+        var generator = new UniqueRoomCodeGenerator();
+
+        String code = generator.generate();
+
+        assertThat(code, matchesRegex("^\\d{6,}$"));
+    }
 
     @Test
     void generatesFirstSixDigitsCode() {
         var generator = new UniqueRoomCodeGenerator();
 
-        String code = generator.generate();
+        String code = generator.generate().trim();
 
-        assertThat(code, is("000001"));
+        assertThat(code, hasLength(6));
     }
 
     @Test
-    void generatesSecondSixDigitsCode() {
+    void codesAreUnique() {
         var generator = new UniqueRoomCodeGenerator();
 
-        generator.generate();
         String code = generator.generate();
+        String anotherCode = generator.generate();
 
-        assertThat(code, is("000002"));
+        assertThat(code, is(not(anotherCode)));
     }
 
     @Test
@@ -35,6 +44,6 @@ class UniqueRoomCodeGeneratorTest {
         }
         String code = generator.generate();
 
-        assertThat(code, is("1000001"));
+        assertThat(code, hasLength(7));
     }
 }

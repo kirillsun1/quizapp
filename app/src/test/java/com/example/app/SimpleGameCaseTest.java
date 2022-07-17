@@ -12,6 +12,8 @@ import static org.hamcrest.Matchers.*;
 
 class SimpleGameCaseTest extends AbstractSessionTest {
 
+    private static final int DEFAULT_TIMEOUT_IN_MS = 500;
+
     @Test
     void simpleTestCase() throws Exception {
         // given
@@ -30,7 +32,7 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         var joinRoomResponse = joinRoom(playerSession, roomCode);
         assertThat(joinRoomResponse.ok(), is(true));
 
-        var roomEvent = moderatorRoomEvents.poll(500, TimeUnit.MILLISECONDS);
+        var roomEvent = moderatorRoomEvents.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
         assertThat(roomEvent, is(notNullValue()));
         assertThat(roomEvent.room(), is(notNullValue()));
         assertThat(roomEvent.room().players(), containsInAnyOrder(DEFAULT_USER_NAME, playerName));
@@ -40,10 +42,10 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         assertThat(playerRoomEvents.isEmpty(), is(true));
 
         // step 3
-        var assignQuizResponse = assignQuiz();
+        var assignQuizResponse = assignQuiz(moderatorSession, roomCode);
         assertThat(assignQuizResponse.ok(), is(true));
 
-        roomEvent = moderatorRoomEvents.poll(500, TimeUnit.MILLISECONDS);
+        roomEvent = moderatorRoomEvents.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
         assertThat(roomEvent, is(notNullValue()));
         assertThat(roomEvent.room(), is(notNullValue()));
         assertThat(roomEvent.room().players(), containsInAnyOrder(DEFAULT_USER_NAME, playerName));
@@ -91,8 +93,14 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         return requestAndWaitForReply(params);
     }
 
-    private AssignQuizResponse assignQuiz() {
-        return new AssignQuizResponse(true);
+    private AssignQuizResponse assignQuiz(StompSession session, String roomCode) {
+        var params = RequestReplyOperationParams.<AssignQuizRequest, AssignQuizResponse>builder()
+                .session(session)
+                .operation("rooms.assign-quiz")
+                .request(new AssignQuizRequest(roomCode, 1))
+                .responseClass(AssignQuizResponse.class)
+                .build();
+        return requestAndWaitForReply(params);
     }
 
     private BlockingQueue<RoomEvent> subscribeToRoomEvents(StompSession session, String roomCode) {
@@ -133,7 +141,7 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         @Builder.Default
         private final boolean noResponseIsOkay = false;
         @Builder.Default
-        private final int timeoutInMs = 500;
+        private final int timeoutInMs = DEFAULT_TIMEOUT_IN_MS;
     }
 
 }

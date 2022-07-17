@@ -1,4 +1,4 @@
-package com.example.app.quiz;
+package com.example.app.room;
 
 public enum OngoingQuizStatus {
     NOT_STARTED,

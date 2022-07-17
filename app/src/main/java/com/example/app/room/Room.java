@@ -1,6 +1,5 @@
 package com.example.app.room;
 
-import com.example.app.quiz.OngoingQuiz;
 import lombok.Builder;
 
 import java.util.Set;
