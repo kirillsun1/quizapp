@@ -6,7 +6,7 @@ import com.example.app.room.OngoingQuizStatus;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
 import com.example.app.room.UniqueRoomCodeGenerator;
-import com.example.app.room.events.RoomChangedInternalEvent;
+import com.example.app.room.events.internal.RoomChangedInternalEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

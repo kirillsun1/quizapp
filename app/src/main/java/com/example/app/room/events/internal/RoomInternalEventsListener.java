@@ -1,6 +1,7 @@
-package com.example.app.room.events;
+package com.example.app.room.events.internal;
 
 import com.example.app.room.RoomRepository;
+import com.example.app.room.events.RoomEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
