@@ -1,8 +1,14 @@
 package com.example.app.playscenarios;
 
+import com.example.app.quiz.Answer;
+import com.example.app.quiz.Question;
+import com.example.app.quiz.Quiz;
+import com.example.app.quiz.QuizRepository;
 import com.example.app.room.OngoingQuizStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -15,6 +21,27 @@ import static org.hamcrest.Matchers.nullValue;
 
 class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
 
+    private static final Quiz quiz = Quiz.builder()
+            .id(999)
+            .creator("this person")
+            .questions(List.of(
+                    Question.builder()
+                            .text("Yes?")
+                            .answers(List.of(
+                                    new Answer("Yes", 100),
+                                    new Answer("No", 0)))
+                            .build(),
+                    Question.builder()
+                            .text("Is that true?")
+                            .answers(List.of(
+                                    new Answer("Yes", 50),
+                                    new Answer("No", -25),
+                                    new Answer("Maybe", 1)))
+                            .build()))
+            .build();
+
+    @Autowired
+    private QuizRepository quizRepository;
     private ModeratorJoystick moderator;
     private PlayerJoystick player;
 
@@ -23,6 +50,8 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         // given
         moderator = new ModeratorJoystick(DEFAULT_USER_NAME, session);
         player = new PlayerJoystick("SomePlayer", createSession("SomePlayer"));
+
+        quizRepository.save(quiz);
 
         String roomCode = moderatorCreatesRoom();
 
@@ -67,7 +96,7 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
     }
 
     private void moderatorAssignsQuiz() throws Exception {
-        var assignQuizResponse = moderator.assignQuiz();
+        var assignQuizResponse = moderator.assignQuiz(quiz.id());
         assertThat(assignQuizResponse.ok(), is(true));
 
         var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
@@ -84,7 +113,7 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.NOT_STARTED));
         assertThat(ongoingQuiz.points(), is(aMapWithSize(1)));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 0));
-        assertThat(ongoingQuiz.quiz(), is(notNullValue()));
+        assertThat(ongoingQuiz.quiz(), is(quiz));
     }
 
     private void moderatorStartsQuiz() throws Exception {
@@ -103,7 +132,7 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
     }
 
     private void playerVotes() throws InterruptedException {
-        var makeChoiceResponse = player.vote(2);
+        var makeChoiceResponse = player.vote(0);
         assertThat(makeChoiceResponse.ok(), is(true));
 
         var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);

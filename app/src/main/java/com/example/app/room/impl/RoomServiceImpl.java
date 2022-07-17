@@ -106,10 +106,12 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
                     if (playerAnswer != null) {
                         var quiz = quizRepository.findById(room.getQuizId()).orElseThrow();
                         var question = quiz.questions().get(room.getCurrentQuestion());
+                        var answers = question.answers();
 
-                        if (question.correctAnswersIndexes().contains(playerAnswer)) {
+                        if (playerAnswer >= 0 && playerAnswer < answers.size()) {
+                            var answer = answers.get(playerAnswer);
                             room.getPlayersPoints()
-                                    .compute(player, (name, oldPoints) -> Objects.requireNonNull(oldPoints) + question.correctPoints());
+                                    .compute(player, (name, oldPoints) -> Objects.requireNonNull(oldPoints) + answer.points());
                         }
                     }
                 });

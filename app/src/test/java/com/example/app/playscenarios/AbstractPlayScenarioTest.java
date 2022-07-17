@@ -59,12 +59,12 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
                     .execute();
         }
 
-        public AssignQuizResponse assignQuiz() {
+        public AssignQuizResponse assignQuiz(int id) {
             return RequestReplyOperation.<AssignQuizRequest, AssignQuizResponse>builder()
                     .responseMessagesListener(createListener(AssignQuizResponse.class))
                     .session(session)
                     .operation("rooms/" + room + "/quiz.assign")
-                    .request(new AssignQuizRequest(1))
+                    .request(new AssignQuizRequest(id))
                     .build()
                     .execute();
         }

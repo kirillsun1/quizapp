@@ -4,11 +4,7 @@ import lombok.Builder;
 
 import java.util.List;
 
-public record Question(String text,
-                       List<String> answers,
-                       List<Integer> correctAnswersIndexes,
-                       int correctPoints,
-                       int incorrectPoints) {
+public record Question(String text, List<Answer> answers) {
     @Builder
     public Question {
     }
