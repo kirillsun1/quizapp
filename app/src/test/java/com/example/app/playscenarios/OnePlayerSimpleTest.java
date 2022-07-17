@@ -62,11 +62,19 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
 
         moderatorStartsQuiz();
 
-        playerVotes();
+        playerVotes(0);
 
         moderatorFinishesRound();
 
         playerAnswerWasCorrect();
+
+        moderatorGoesToTheNextQuestion();
+
+        playerVotes(1);
+
+        moderatorFinishesRound();
+
+        playerAnswerWasIncorrectAndQuizIsFinished();
     }
 
     private String moderatorCreatesRoom() {
@@ -131,8 +139,8 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
     }
 
-    private void playerVotes() throws InterruptedException {
-        var makeChoiceResponse = player.vote(0);
+    private void playerVotes(int choice) throws InterruptedException {
+        var makeChoiceResponse = player.vote(choice);
         assertThat(makeChoiceResponse.ok(), is(true));
 
         var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
@@ -159,6 +167,35 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.currentQuestion(), is(0));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.WAITING));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 100));
+    }
+
+    private void moderatorGoesToTheNextQuestion() throws Exception {
+        var finishRoundResponse = moderator.moveOn();
+        assertThat(finishRoundResponse.ok(), is(true));
+
+        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+        assertThat(moderatorRoomEvent, is(playerRoomEvent));
+
+        assertThat(moderatorRoomEvent, is(notNullValue()));
+        var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
+        assertThat(ongoingQuiz.currentQuestion(), is(1));
+        assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
+        assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 100));
+    }
+
+    private void playerAnswerWasIncorrectAndQuizIsFinished() throws Exception {
+        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+        assertThat(moderatorRoomEvent, is(playerRoomEvent));
+
+        assertThat(moderatorRoomEvent, is(notNullValue()));
+        var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
+        assertThat(ongoingQuiz.currentQuestion(), is(1));
+        assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.DONE));
+        assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 75));
     }
 
 }

@@ -68,9 +68,7 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
         }
 
         MutableRoom room = roomOptional.get();
-        room.setCurrentQuestion(0);
-        room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
-        room.getVotesByQuestions().put(0, new HashMap<>());
+        moveToQuestion(room, 0);
 
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
         return true;
@@ -99,12 +97,47 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
         }
 
         MutableRoom room = roomOptional.get();
-        room.setStatus(OngoingQuizStatus.WAITING);
+
+        boolean sendEvent = false;
+        switch (room.getStatus()) {
+            case WAITING -> {
+                moveToQuestion(room, room.getCurrentQuestion() + 1);
+                sendEvent = true;
+            }
+            case QUESTION_IN_PROGRESS -> {
+                finishRound(room);
+                sendEvent = true;
+            }
+        }
+
+        if (sendEvent) {
+            eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+        }
+        return true;
+    }
+
+
+    private void moveToQuestion(MutableRoom room, int question) {
+        room.getVotesByQuestions().putIfAbsent(question, new HashMap<>());
+        room.setCurrentQuestion(question);
+        room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
+    }
+
+    private void finishRound(MutableRoom room) {
+        var quiz = quizRepository.findById(room.getQuizId()).orElseThrow();
+
+        if (room.getCurrentQuestion() == quiz.questions().size() - 1) {
+            // last question
+            room.setStatus(OngoingQuizStatus.DONE);
+        } else {
+            room.setStatus(OngoingQuizStatus.WAITING);
+        }
+
         room.getPlayersPoints().keySet()
                 .forEach(player -> {
                     Integer playerAnswer = room.getVotesByQuestions().get(room.getCurrentQuestion()).get(player);
                     if (playerAnswer != null) {
-                        var quiz = quizRepository.findById(room.getQuizId()).orElseThrow();
+
                         var question = quiz.questions().get(room.getCurrentQuestion());
                         var answers = question.answers();
 
@@ -115,9 +148,6 @@ public class RoomServiceImpl implements RoomService, OngoingQuizService {
                         }
                     }
                 });
-
-        eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
-        return true;
     }
 
     private Optional<MutableRoom> findRoom(String requester, String code) {
