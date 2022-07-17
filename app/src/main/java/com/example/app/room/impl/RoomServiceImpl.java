@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -66,10 +67,9 @@ public class RoomServiceImpl implements RoomService {
         }
 
         MutableRoom room = roomOptional.get();
-        int currentQuestion = room.getCurrentQuestion() + 1;
-        room.setCurrentQuestion(currentQuestion);
+        room.setCurrentQuestion(0);
         room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
-        room.getVotesByQuestions().put(currentQuestion, new HashMap<>());
+        room.getVotesByQuestions().put(0, new HashMap<>());
 
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
         return true;
@@ -87,6 +87,33 @@ public class RoomServiceImpl implements RoomService {
         }
 
         room.getVotesByQuestions().get(room.getCurrentQuestion()).put(requester, choice);
+        return true;
+    }
+
+    @Override
+    public boolean moveOn(String requester, String code) {
+        Optional<MutableRoom> roomOptional = findRoom(requester, code);
+        if (roomOptional.isEmpty()) {
+            return false;
+        }
+
+        MutableRoom room = roomOptional.get();
+        room.setStatus(OngoingQuizStatus.WAITING);
+        room.getPlayersPoints().keySet()
+                .forEach(player -> {
+                    Integer playerAnswer = room.getVotesByQuestions().get(room.getCurrentQuestion()).get(player);
+                    if (playerAnswer != null) {
+                        var quiz = quizRepository.findById(room.getQuizId()).orElseThrow();
+                        var question = quiz.questions().get(room.getCurrentQuestion());
+
+                        if (question.correctAnswersIndexes().contains(playerAnswer)) {
+                            room.getPlayersPoints()
+                                    .compute(player, (name, oldPoints) -> Objects.requireNonNull(oldPoints) + question.correctPoints());
+                        }
+                    }
+                });
+
+        eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
         return true;
     }
 

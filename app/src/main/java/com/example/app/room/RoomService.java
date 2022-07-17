@@ -11,4 +11,6 @@ public interface RoomService {
     boolean startQuiz(String requester, String code);
 
     boolean vote(String requester, String roomCode, int choice);
+
+    boolean moveOn(String value, String code);
 }

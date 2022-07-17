@@ -43,4 +43,10 @@ public class RoomController {
         return new VoteResponse(roomService.vote(userName.value(), request.roomCode(), request.choice()));
     }
 
+    @MessageMapping("/rooms.quiz.move-on")
+    @SendToUser(broadcast = false)
+    public MoveOnResponse moveOn(UserName userName, MoveOnRequest request) {
+        return new MoveOnResponse(roomService.moveOn(userName.value(), request.code()));
+    }
+
 }

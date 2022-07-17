@@ -34,6 +34,10 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         moderatorStartsQuiz();
 
         playerVotes();
+
+        moderatorFinishesRound();
+
+        playerAnswerWasCorrect();
     }
 
     private String moderatorCreatesRoom() {
@@ -94,7 +98,7 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
 
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
         assertThat(ongoingQuiz, is(notNullValue()));
-        assertThat(ongoingQuiz.currentQuestion(), is(1));
+        assertThat(ongoingQuiz.currentQuestion(), is(0));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
     }
 
@@ -110,5 +114,22 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         assertThat(playerRoomEvent, is(nullValue()));
     }
 
+    private void moderatorFinishesRound() {
+        var finishRoundResponse = moderator.moveOn();
+        assertThat(finishRoundResponse.ok(), is(true));
+    }
+
+    private void playerAnswerWasCorrect() throws Exception {
+        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+        assertThat(moderatorRoomEvent, is(playerRoomEvent));
+
+        assertThat(moderatorRoomEvent, is(notNullValue()));
+        var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
+        assertThat(ongoingQuiz.currentQuestion(), is(0));
+        assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.WAITING));
+        assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 100));
+    }
 
 }
