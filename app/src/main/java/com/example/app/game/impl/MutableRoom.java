@@ -1,18 +1,16 @@
-package com.example.app.room.impl;
+package com.example.app.game.impl;
 
 
-import com.example.app.room.OngoingQuizStatus;
+import com.example.app.ongoingquiz.OngoingQuizStatus;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Data
 @Builder
-public class MutableRoom {
+class MutableRoom {
 
     private final String code;
 

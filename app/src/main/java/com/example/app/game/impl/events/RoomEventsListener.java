@@ -1,4 +1,4 @@
-package com.example.app.room.events.internal;
+package com.example.app.game.impl.events;
 
 import com.example.app.room.RoomRepository;
 import com.example.app.room.events.RoomEvent;
@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RoomInternalEventsListener {
+public class RoomEventsListener {
 
     private final RoomRepository roomRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
-    public void onRoomChanged(RoomChangedInternalEvent event) {
+    public void onRoomChanged(RoomChangedEvent event) {
         roomRepository.findByCode(event.code())
                 .ifPresent(room -> messagingTemplate.convertAndSend("/topic/rooms." + event.code(), new RoomEvent(room)));
     }

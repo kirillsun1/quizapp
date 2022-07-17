@@ -1,4 +1,4 @@
-package com.example.app.config;
+package com.example.app.core;
 
 public record UserName(String value) {
 }

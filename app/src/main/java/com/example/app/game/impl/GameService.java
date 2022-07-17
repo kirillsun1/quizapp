@@ -1,13 +1,13 @@
-package com.example.app.room.impl;
+package com.example.app.game.impl;
 
+import com.example.app.ongoingquiz.OngoingQuizService;
+import com.example.app.ongoingquiz.OngoingQuizStatus;
+import com.example.app.ongoingquiz.exceptions.ModeratorIsNotPlayerException;
+import com.example.app.ongoingquiz.exceptions.PlayerIsNotModeratorException;
 import com.example.app.quiz.QuizRepository;
-import com.example.app.room.OngoingQuizService;
-import com.example.app.room.OngoingQuizStatus;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
-import com.example.app.room.events.internal.RoomChangedInternalEvent;
-import com.example.app.room.exceptions.ModeratorIsNotPlayerException;
-import com.example.app.room.exceptions.PlayerIsNotModeratorException;
+import com.example.app.game.impl.events.RoomChangedEvent;
 import com.example.app.room.exceptions.QuizNotFoundException;
 import com.example.app.room.exceptions.RoomNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class GameService implements RoomService, OngoingQuizService {
+class GameService implements RoomService, OngoingQuizService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final MutableRoomRepository roomRepository;
@@ -42,7 +42,7 @@ public class GameService implements RoomService, OngoingQuizService {
     public void joinRoom(String code, String player) {
         var room = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
         room.getPlayersPoints().putIfAbsent(player, 0);
-        eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+        eventPublisher.publishEvent(new RoomChangedEvent(code));
     }
 
     @Override
@@ -52,14 +52,14 @@ public class GameService implements RoomService, OngoingQuizService {
             throw new QuizNotFoundException();
         }
         room.setQuizId(quizId);
-        eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+        eventPublisher.publishEvent(new RoomChangedEvent(code));
     }
 
     @Override
     public void start(String requester, String code) {
         MutableRoom room = findRoomForModerator(requester, code);
         moveToQuestion(room, 0);
-        eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+        eventPublisher.publishEvent(new RoomChangedEvent(code));
     }
 
     @Override
@@ -88,7 +88,7 @@ public class GameService implements RoomService, OngoingQuizService {
         }
 
         if (sendEvent) {
-            eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+            eventPublisher.publishEvent(new RoomChangedEvent(code));
         }
     }
 

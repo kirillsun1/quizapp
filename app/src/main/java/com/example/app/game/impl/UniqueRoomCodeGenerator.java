@@ -1,15 +1,15 @@
-package com.example.app.room.impl;
+package com.example.app.game.impl;
 
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-public class UniqueRoomCodeGenerator {
+class UniqueRoomCodeGenerator {
 
     private final AtomicInteger cur = new AtomicInteger(0);
 
-    public String generate() {
+    String generate() {
         return String.format("%06d", cur.incrementAndGet());
     }
 

@@ -1,4 +1,4 @@
-package com.example.app.room.impl;
+package com.example.app.game.impl;
 
 import com.example.app.room.Room;
 import com.example.app.room.RoomRepository;
@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class RoomRepositoryImpl implements RoomRepository {
+class RoomRepositoryImpl implements RoomRepository {
 
     private final MutableRoomRepository mutableRoomRepository;
     private final RoomMapper roomMapper;

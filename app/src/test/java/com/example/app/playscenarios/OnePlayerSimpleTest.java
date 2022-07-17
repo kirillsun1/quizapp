@@ -4,7 +4,7 @@ import com.example.app.quiz.Answer;
 import com.example.app.quiz.Question;
 import com.example.app.quiz.Quiz;
 import com.example.app.quiz.QuizRepository;
-import com.example.app.room.OngoingQuizStatus;
+import com.example.app.ongoingquiz.OngoingQuizStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

@@ -1,4 +1,4 @@
-package com.example.app.room.exceptions;
+package com.example.app.core;
 
 public abstract class BaseGameException extends RuntimeException {
 }

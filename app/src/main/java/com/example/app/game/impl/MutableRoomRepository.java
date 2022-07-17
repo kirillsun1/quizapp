@@ -1,4 +1,4 @@
-package com.example.app.room.impl;
+package com.example.app.game.impl;
 
 import org.springframework.stereotype.Repository;
 
@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
-public class MutableRoomRepository {
+class MutableRoomRepository {
 
     private final Map<String, MutableRoom> rooms = new ConcurrentHashMap<>();
 

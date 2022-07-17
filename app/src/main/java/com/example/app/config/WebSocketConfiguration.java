@@ -1,5 +1,6 @@
 package com.example.app.config;
 
+import com.example.app.core.UserName;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.server.ServerHttpRequest;

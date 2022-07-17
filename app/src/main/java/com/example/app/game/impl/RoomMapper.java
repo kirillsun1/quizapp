@@ -1,19 +1,19 @@
-package com.example.app.room.impl;
+package com.example.app.game.impl;
 
+import com.example.app.ongoingquiz.OngoingQuiz;
 import com.example.app.quiz.Quiz;
 import com.example.app.quiz.QuizRepository;
-import com.example.app.room.OngoingQuiz;
 import com.example.app.room.Room;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RoomMapper {
+class RoomMapper {
 
     private final QuizRepository quizRepository;
 
-    public Room toPublic(MutableRoom mutableRoom) {
+    Room toPublic(MutableRoom mutableRoom) {
         var builder = Room.builder()
                 .code(mutableRoom.getCode())
                 .moderator(mutableRoom.getModerator())

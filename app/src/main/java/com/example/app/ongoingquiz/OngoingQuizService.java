@@ -1,4 +1,4 @@
-package com.example.app.room;
+package com.example.app.ongoingquiz;
 
 public interface OngoingQuizService {
 
