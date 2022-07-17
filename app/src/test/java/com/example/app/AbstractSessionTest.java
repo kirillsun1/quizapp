@@ -8,8 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.ActiveProfiles;
@@ -17,7 +15,6 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.concurrent.*;
 
 @Import(WebSocketTestClientConfiguration.class)
@@ -25,7 +22,7 @@ import java.util.concurrent.*;
 @ActiveProfiles("test")
 public class AbstractSessionTest {
 
-    private static final int DEFAULT_EVENTS_QUEUE_CAPACITY = 100;
+    protected static final int DEFAULT_TIMEOUT_IN_MS = 100;
     protected static final String DEFAULT_USER_NAME = "QUIZ-APP-TEST";
 
     @Autowired
@@ -64,7 +61,7 @@ public class AbstractSessionTest {
         }
     }
 
-    protected <T> Future<T> expectResponse(StompSession session, String destination, Class<T> clazz) {
+    protected <T> Future<T> expectReply(StompSession session, String destination, Class<T> clazz) {
         var queue = subscribe(session, destination, clazz);
         return new CompletableFuture<T>().completeAsync(() -> {
             try {
@@ -76,19 +73,13 @@ public class AbstractSessionTest {
     }
 
     protected <T> BlockingQueue<T> subscribe(StompSession session, String destination, Class<T> clazz) {
-        var queue = new ArrayBlockingQueue<T>(DEFAULT_EVENTS_QUEUE_CAPACITY);
-        session.subscribe(destination, new StompFrameHandler() {
-            @Override
-            public Type getPayloadType(StompHeaders headers) {
-                return byte[].class;
-            }
+        var handler = createListener(clazz);
+        session.subscribe(destination, handler);
+        return handler.getQueue();
+    }
 
-            @Override
-            public void handleFrame(StompHeaders headers, Object payload) {
-                queue.add(readFromBytes((byte[]) payload, clazz));
-            }
-        });
-        return queue;
+    protected <T> ResponseMessagesListener<T> createListener(Class<T> clazz) {
+        return new ResponseMessagesListener<>(bytes -> readFromBytes(bytes, clazz));
     }
 
     protected <T> T readFromBytes(byte[] bytes, Class<T> clazz) {

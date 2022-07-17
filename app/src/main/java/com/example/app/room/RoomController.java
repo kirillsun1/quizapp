@@ -22,29 +22,25 @@ public class RoomController {
     @MessageMapping("/rooms.join")
     @SendToUser(broadcast = false)
     public JoinRoomResponse joinRoom(UserName userName, JoinRoomRequest request) {
-        var ok = roomService.joinRoom(request.code(), userName.value());
-        return new JoinRoomResponse(ok);
+        return new JoinRoomResponse(roomService.joinRoom(request.code(), userName.value()));
     }
 
     @MessageMapping("/rooms.quiz.assign")
     @SendToUser(broadcast = false)
     public AssignQuizResponse assignQuiz(UserName userName, AssignQuizRequest request) {
-        var ok = roomService.assignQuiz(userName.value(), request.roomCode(), request.quizId());
-        return new AssignQuizResponse(ok);
+        return new AssignQuizResponse(roomService.assignQuiz(userName.value(), request.roomCode(), request.quizId()));
     }
 
     @MessageMapping("/rooms.quiz.start")
     @SendToUser(broadcast = false)
     public StartQuizResponse startQuiz(UserName userName, StartQuizRequest request) {
-        var ok = roomService.startQuiz(userName.value(), request.roomCode());
-        return new StartQuizResponse(ok);
+        return new StartQuizResponse(roomService.startQuiz(userName.value(), request.roomCode()));
     }
 
     @MessageMapping("/rooms.quiz.vote")
     @SendToUser(broadcast = false)
     public VoteResponse vote(UserName userName, VoteRequest request) {
-        var ok = roomService.vote(userName.value(), request.roomCode(), request.choice());
-        return new VoteResponse(ok);
+        return new VoteResponse(roomService.vote(userName.value(), request.roomCode(), request.choice()));
     }
 
 }
