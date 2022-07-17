@@ -5,6 +5,7 @@ import com.example.app.ongoingquiz.OngoingQuizService;
 import com.example.app.ongoingquiz.OngoingQuizStatus;
 import com.example.app.ongoingquiz.exceptions.ModeratorIsNotPlayerException;
 import com.example.app.ongoingquiz.exceptions.PlayerIsNotModeratorException;
+import com.example.app.ongoingquiz.exceptions.QuizNotAssignedException;
 import com.example.app.quiz.QuizRepository;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
@@ -71,6 +72,9 @@ class GameService implements RoomService, OngoingQuizService {
         boolean sendEvent = false;
         switch (room.getStatus()) {
             case NOT_STARTED -> {
+                if (room.getQuizId() == null) {
+                    throw new QuizNotAssignedException();
+                }
                 moveToQuestion(room, 0);
                 sendEvent = true;
             }
