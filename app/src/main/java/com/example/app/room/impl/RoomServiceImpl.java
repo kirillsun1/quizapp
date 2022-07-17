@@ -1,6 +1,7 @@
 package com.example.app.room.impl;
 
 import com.example.app.quiz.QuizRepository;
+import com.example.app.room.OngoingQuizService;
 import com.example.app.room.OngoingQuizStatus;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class RoomServiceImpl implements RoomService {
+public class RoomServiceImpl implements RoomService, OngoingQuizService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final MutableRoomRepository roomRepository;
@@ -60,7 +61,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public boolean startQuiz(String requester, String code) {
+    public boolean start(String requester, String code) {
         Optional<MutableRoom> roomOptional = findRoom(requester, code);
         if (roomOptional.isEmpty()) {
             return false;
