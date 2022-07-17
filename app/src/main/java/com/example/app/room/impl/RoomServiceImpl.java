@@ -1,6 +1,7 @@
 package com.example.app.room.impl;
 
 import com.example.app.quiz.QuizRepository;
+import com.example.app.room.OngoingQuizStatus;
 import com.example.app.room.Room;
 import com.example.app.room.RoomService;
 import com.example.app.room.UniqueRoomCodeGenerator;
@@ -47,8 +48,7 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public boolean assignQuiz(String requester, String code, int quizId) {
-        Optional<MutableRoom> roomOptional = roomRepository.findByCode(code)
-                .filter(room -> requester.equals(room.getModerator()));
+        Optional<MutableRoom> roomOptional = findRoom(requester, code);
 
         if (roomOptional.isEmpty() || quizRepository.findById(quizId).isEmpty()) {
             return false;
@@ -58,6 +58,27 @@ public class RoomServiceImpl implements RoomService {
         eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
 
         return true;
+    }
+
+    @Override
+    public boolean startQuiz(String requester, String code) {
+        Optional<MutableRoom> roomOptional = findRoom(requester, code);
+
+        if (roomOptional.isEmpty()) {
+            return false;
+        }
+
+        MutableRoom room = roomOptional.get();
+        room.setCurrentQuestion(room.getCurrentQuestion() + 1);
+        room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
+
+        eventPublisher.publishEvent(new RoomChangedInternalEvent(code));
+        return true;
+    }
+
+    private Optional<MutableRoom> findRoom(String requester, String code) {
+        return roomRepository.findByCode(code)
+                .filter(room -> requester.equals(room.getModerator()));
     }
 
 }

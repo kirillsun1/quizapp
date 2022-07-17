@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 
 class SimpleGameCaseTest extends AbstractSessionTest {
 
-    private static final int DEFAULT_TIMEOUT_IN_MS = 500;
+    private static final int DEFAULT_TIMEOUT_IN_MS = 100;
 
     @Test
     void simpleGame() throws Exception {
@@ -66,6 +66,19 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         assertThat(moderatorRoomEvent, is(playerRoomEvent));
 
         // step 4 - moderator starts quiz
+        var startQuizResponse = moderator.startQuiz();
+        assertThat(startQuizResponse.ok(), is(true));
+
+        moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+
+        assertThat(moderatorRoomEvent, is(playerRoomEvent));
+
+        ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
+        assertThat(ongoingQuiz, is(notNullValue()));
+        assertThat(ongoingQuiz.currentQuestion(), is(1));
+        assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
+
     }
 
     @Test
@@ -95,32 +108,6 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         assertThat(responseForDefaultSession, is(notNullValue()));
         assertThat(responseForAnotherSession, is(nullValue()));
     }
-
-    private <REQ, RES> RES requestAndWaitForReply(RequestReplyOperationParams<REQ, RES> params) {
-        var responseFuture =
-                expectResponse(params.session, "/user/queue/" + params.operation, params.responseClass);
-        params.session.send("/app/" + params.operation, params.request);
-        try {
-            Thread.sleep(params.timeoutInMs);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        RES response = getImmediatelyAndSafely(responseFuture);
-        if (!params.noResponseIsOkay && response == null) {
-            throw new IllegalStateException("Operation '" + params.operation + "' failed. Expected to get response within " + params.timeoutInMs + " ms.");
-        }
-        return response;
-    }
-
-    private <T> T getImmediatelyAndSafely(Future<T> future) {
-        try {
-            future.cancel(true);
-            return future.get();
-        } catch (CancellationException | ExecutionException | InterruptedException ignored) {
-            return null;
-        }
-    }
-
 
     private class PlayerJoystick {
 
@@ -171,6 +158,15 @@ class SimpleGameCaseTest extends AbstractSessionTest {
             return requestAndWaitForReply(params);
         }
 
+        public StartQuizResponse startQuiz() {
+            var params = RequestReplyOperationParams.<StartQuizRequest, StartQuizResponse>builder()
+                    .session(session)
+                    .operation("rooms.start-quiz")
+                    .request(new StartQuizRequest(room))
+                    .responseClass(StartQuizResponse.class)
+                    .build();
+            return requestAndWaitForReply(params);
+        }
     }
 
     @Builder
@@ -184,6 +180,31 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         @Builder.Default
         private final int timeoutInMs = DEFAULT_TIMEOUT_IN_MS;
 
+    }
+
+    private <REQ, RES> RES requestAndWaitForReply(RequestReplyOperationParams<REQ, RES> params) {
+        var responseFuture =
+                expectResponse(params.session, "/user/queue/" + params.operation, params.responseClass);
+        params.session.send("/app/" + params.operation, params.request);
+        try {
+            Thread.sleep(params.timeoutInMs);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        RES response = getImmediatelyAndSafely(responseFuture);
+        if (!params.noResponseIsOkay && response == null) {
+            throw new IllegalStateException("Operation '" + params.operation + "' failed. Expected to get response within " + params.timeoutInMs + " ms.");
+        }
+        return response;
+    }
+
+    private <T> T getImmediatelyAndSafely(Future<T> future) {
+        try {
+            future.cancel(true);
+            return future.get();
+        } catch (CancellationException | ExecutionException | InterruptedException ignored) {
+            return null;
+        }
     }
 
 }

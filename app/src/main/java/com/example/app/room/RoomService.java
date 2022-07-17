@@ -8,5 +8,5 @@ public interface RoomService {
 
     boolean assignQuiz(String requester, String code, int quizId);
 
-
+    boolean startQuiz(String requester, String code);
 }

@@ -33,4 +33,11 @@ public class RoomController {
         return new AssignQuizResponse(ok);
     }
 
+    @MessageMapping("/rooms.start-quiz")
+    @SendToUser(broadcast = false)
+    public StartQuizResponse startQuiz(UserName userName, StartQuizRequest request) {
+        var ok = roomService.startQuiz(userName.value(), request.roomCode());
+        return new StartQuizResponse(ok);
+    }
+
 }
