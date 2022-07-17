@@ -16,13 +16,13 @@ public class RoomController {
     private final RoomService roomService;
 
     @MessageMapping("/rooms.create")
-    @SendToUser(value = "/queue/responses/rooms.create", broadcast = false)
+    @SendToUser(broadcast = false)
     public CreateRoomResponse createRoom(UserName userName) {
         return new CreateRoomResponse(roomService.createRoom(userName.value()).code());
     }
 
     @MessageMapping("/rooms.join")
-    @SendToUser(value = "/queue/responses/rooms.join", broadcast = false)
+    @SendToUser(broadcast = false)
     public JoinRoomResponse joinRoom(UserName userName, JoinRoomRequest request) {
         return roomService.joinRoom(request.code(), userName.value())
                 .map(room -> new JoinRoomResponse(true))

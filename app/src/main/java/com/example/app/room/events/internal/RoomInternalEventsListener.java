@@ -17,9 +17,7 @@ public class RoomInternalEventsListener {
     @EventListener
     public void onRoomChanged(RoomChangedInternalEvent event) {
         roomRepository.findByCode(event.code())
-                .ifPresent(room -> {
-                    messagingTemplate.convertAndSend("/topic/rooms." + event.code(), new RoomEvent(room));
-                });
+                .ifPresent(room -> messagingTemplate.convertAndSend("/topic/rooms." + event.code(), new RoomEvent(room)));
     }
 
 }

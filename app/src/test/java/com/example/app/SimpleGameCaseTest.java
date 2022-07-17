@@ -50,10 +50,6 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         assertThat(roomEvent.room().ongoingQuiz(), is(notNullValue()));
     }
 
-    private AssignQuizResponse assignQuiz() {
-        return new AssignQuizResponse(true);
-    }
-
     @Test
     void doesNotJoinNotExistingRoom() {
         JoinRoomResponse response = joinRoom(session, "012345");
@@ -95,13 +91,17 @@ class SimpleGameCaseTest extends AbstractSessionTest {
         return requestAndWaitForReply(params);
     }
 
+    private AssignQuizResponse assignQuiz() {
+        return new AssignQuizResponse(true);
+    }
+
     private BlockingQueue<RoomEvent> subscribeToRoomEvents(StompSession session, String roomCode) {
         return subscribe(session, "/topic/rooms." + roomCode, RoomEvent.class);
     }
 
     private <REQ, RES> RES requestAndWaitForReply(RequestReplyOperationParams<REQ, RES> params) {
         var responseFuture =
-                expectResponse(params.session, "/user/queue/responses/" + params.operation, params.responseClass);
+                expectResponse(params.session, "/user/queue/" + params.operation, params.responseClass);
         params.session.send("/app/" + params.operation, params.request);
         try {
             Thread.sleep(params.timeoutInMs);
