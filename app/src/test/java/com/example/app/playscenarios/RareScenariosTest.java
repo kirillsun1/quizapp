@@ -3,18 +3,22 @@ package com.example.app.playscenarios;
 import com.example.app.room.events.JoinRoomResponse;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 class RareScenariosTest extends AbstractPlayScenarioTest {
 
     @Test
     void doesNotJoinNotExistingRoom() {
-        var moderator = new PlayerJoystick(DEFAULT_USER_NAME, session);
+        var moderator = new PlayerJoystick(UUID.randomUUID().toString());
+        moderator.createSession();
         moderator.setRoom("012345");
 
         JoinRoomResponse response = moderator.joinRoom();
@@ -24,9 +28,13 @@ class RareScenariosTest extends AbstractPlayScenarioTest {
 
     @Test
     void doesNotSendResponsesToAnotherSession() {
-        var moderator = new ModeratorJoystick(DEFAULT_USER_NAME, session);
-        var player = new PlayerJoystick("player", createSession("player"));
-        var anotherPlayer = new PlayerJoystick("player2", createSession("player2"));
+        var moderator = new ModeratorJoystick(UUID.randomUUID().toString());
+        var player = new PlayerJoystick(UUID.randomUUID().toString());
+        var anotherPlayer = new PlayerJoystick(UUID.randomUUID().toString());
+
+        moderator.createSession();
+        player.createSession();
+        anotherPlayer.createSession();
 
         var roomCode = moderator.createRoom().code();
         player.setRoom(roomCode);
@@ -41,7 +49,7 @@ class RareScenariosTest extends AbstractPlayScenarioTest {
         assertThat(responseForAnotherPlayer, is(nullValue()));
     }
 
-    private  <T> T getImmediatelyAndSafely(Future<T> future) {
+    private <T> T getImmediatelyAndSafely(Future<T> future) {
         try {
             future.cancel(true);
             return future.get();

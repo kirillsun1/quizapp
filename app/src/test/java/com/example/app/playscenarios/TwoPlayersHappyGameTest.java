@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,9 +52,13 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
 
     @Test
     void twoPlayersHappy() throws Exception {
-        moderator = new ModeratorJoystick(DEFAULT_USER_NAME, session);
-        player = new PlayerJoystick("player 1", createSession("player 1"));
-        anotherPlayer = new PlayerJoystick("player 2", createSession("player 2"));
+        moderator = new ModeratorJoystick(UUID.randomUUID().toString());
+        player = new PlayerJoystick(UUID.randomUUID().toString());
+        anotherPlayer = new PlayerJoystick(UUID.randomUUID().toString());
+
+        moderator.createSession();
+        player.createSession();
+        anotherPlayer.createSession();
 
         quizRepository.save(quiz);
 

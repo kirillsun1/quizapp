@@ -1,8 +1,6 @@
 package com.example.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -15,7 +13,10 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.io.IOException;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 @Import(WebSocketTestClientConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -23,7 +24,6 @@ import java.util.concurrent.*;
 public class AbstractSessionTest {
 
     protected static final int DEFAULT_TIMEOUT_IN_MS = 100;
-    protected static final String DEFAULT_USER_NAME = "QUIZ-APP-TEST";
 
     @Autowired
     private WebSocketStompClient client;
@@ -31,20 +31,6 @@ public class AbstractSessionTest {
     private ObjectMapper objectMapper;
     @LocalServerPort
     private int port;
-
-    protected StompSession session;
-
-    @BeforeEach
-    void setUp() {
-        session = createSession(DEFAULT_USER_NAME);
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (session != null) {
-            session.disconnect();
-        }
-    }
 
     protected StompSession createSession(String userName) {
         try {

@@ -23,16 +23,19 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
     private abstract class Joystick {
 
         final String playerName;
-        final StompSession session;
+        StompSession session;
 
         @Setter
         protected String room;
 
         BlockingQueue<RoomEvent> events;
 
-        public Joystick(String playerName, StompSession session) {
+        public Joystick(String playerName) {
             this.playerName = playerName;
-            this.session = session;
+        }
+
+        public void createSession() {
+            session = AbstractPlayScenarioTest.this.createSession(playerName);
         }
 
         public void subscribeToRoomEvents() {
@@ -43,8 +46,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
 
     protected class ModeratorJoystick extends Joystick {
 
-        protected ModeratorJoystick(String playerName, StompSession session) {
-            super(playerName, session);
+        protected ModeratorJoystick(String playerName) {
+            super(playerName);
         }
 
         public CreateRoomResponse createRoom() {
@@ -80,8 +83,8 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
 
     protected class PlayerJoystick extends Joystick {
 
-        protected PlayerJoystick(String playerName, StompSession session) {
-            super(playerName, session);
+        protected PlayerJoystick(String playerName) {
+            super(playerName);
         }
 
         public JoinRoomResponse joinRoom() {
