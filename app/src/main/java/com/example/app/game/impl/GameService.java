@@ -98,6 +98,7 @@ class GameService implements RoomService, OngoingQuizService {
         room.getVotesByQuestions().putIfAbsent(question, new HashMap<>());
         room.setCurrentQuestion(question);
         room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
+        room.setShowQuestion(true);
     }
 
     private void finishRound(MutableRoom room) {
@@ -109,12 +110,11 @@ class GameService implements RoomService, OngoingQuizService {
         } else {
             room.setStatus(OngoingQuizStatus.WAITING);
         }
-
+        room.setShowQuestion(false);
         room.getPlayersPoints().keySet()
                 .forEach(player -> {
                     Integer playerAnswer = room.getVotesByQuestions().get(room.getCurrentQuestion()).get(player);
                     if (playerAnswer != null) {
-
                         var question = quiz.questions().get(room.getCurrentQuestion());
                         var answers = question.answers();
 

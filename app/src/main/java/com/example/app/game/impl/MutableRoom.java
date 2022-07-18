@@ -25,6 +25,9 @@ class MutableRoom {
     private OngoingQuizStatus status = OngoingQuizStatus.NOT_STARTED;
 
     @Builder.Default
+    private boolean showQuestion = false;
+
+    @Builder.Default
     private int currentQuestion = 0;
 
     @Builder.Default

@@ -1,5 +1,6 @@
 package com.example.app.playscenarios;
 
+import com.example.app.ongoingquiz.CurrentQuestion;
 import com.example.app.ongoingquiz.OngoingQuizStatus;
 import com.example.app.quiz.Answer;
 import com.example.app.quiz.Question;
@@ -14,8 +15,10 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -131,12 +134,11 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(moderatorRoomEvent.room().players(), containsInAnyOrder(player.playerName, anotherPlayer.playerName));
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
         assertThat(ongoingQuiz, is(notNullValue()));
-        assertThat(ongoingQuiz.currentQuestion(), is(0));
+        assertThat(ongoingQuiz.currentQuestion(), is(nullValue()));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.NOT_STARTED));
         assertThat(ongoingQuiz.points(), is(aMapWithSize(2)));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 0));
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 0));
-        assertThat(ongoingQuiz.quiz(), is(quiz));
     }
 
     private void moderatorStartsQuiz() throws Exception {
@@ -152,7 +154,10 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
 
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
         assertThat(ongoingQuiz, is(notNullValue()));
-        assertThat(ongoingQuiz.currentQuestion(), is(0));
+        CurrentQuestion currentQuestion = ongoingQuiz.currentQuestion();
+        assertThat(currentQuestion, is(notNullValue()));
+        assertThat(currentQuestion.text(), is(quiz.questions().get(0).text()));
+        assertThat(currentQuestion.answers(), is(not(empty())));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
     }
 
@@ -184,7 +189,7 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(moderatorRoomEvent, is(anotherPlayerRoomEvent));
 
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
-        assertThat(ongoingQuiz.currentQuestion(), is(0));
+        assertThat(ongoingQuiz.currentQuestion(), is(nullValue()));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.WAITING));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 0));
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 100));
@@ -203,7 +208,10 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
 
         assertThat(moderatorRoomEvent, is(notNullValue()));
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
-        assertThat(ongoingQuiz.currentQuestion(), is(1));
+        CurrentQuestion currentQuestion = ongoingQuiz.currentQuestion();
+        assertThat(currentQuestion, is(notNullValue()));
+        assertThat(currentQuestion.text(), is(quiz.questions().get(1).text()));
+        assertThat(currentQuestion.answers(), is(not(empty())));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 0));
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 100));
@@ -219,7 +227,7 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
 
         assertThat(moderatorRoomEvent, is(notNullValue()));
         var ongoingQuiz = moderatorRoomEvent.room().ongoingQuiz();
-        assertThat(ongoingQuiz.currentQuestion(), is(1));
+        assertThat(ongoingQuiz.currentQuestion(), is(nullValue()));
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.DONE));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 1));
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 150));
