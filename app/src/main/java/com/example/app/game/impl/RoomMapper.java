@@ -26,7 +26,7 @@ class RoomMapper {
         var quiz = findQuiz(mutableRoom.getQuizId());
         if (quiz != null) {
             builder.ongoingQuiz(OngoingQuiz.builder()
-                    .currentQuestion(getCurrentQuestion(quiz, mutableRoom))
+                    .currentQuestion(buildCurrentQuestion(quiz, mutableRoom))
                     .points(mutableRoom.getPlayersPoints())
                     .status(mutableRoom.getStatus())
                     .build());
@@ -34,7 +34,7 @@ class RoomMapper {
         return builder.build();
     }
 
-    private CurrentQuestion getCurrentQuestion(Quiz quiz, MutableRoom mutableRoom) {
+    private CurrentQuestion buildCurrentQuestion(Quiz quiz, MutableRoom mutableRoom) {
         if (!mutableRoom.isShowQuestion()) {
             return null;
         }

@@ -19,5 +19,4 @@ class MutableRoomRepository {
         return Optional.ofNullable(rooms.get(code));
     }
 
-
 }
