@@ -35,7 +35,7 @@ class RoomMapper {
     }
 
     private CurrentQuestion buildCurrentQuestion(Quiz quiz, MutableRoom mutableRoom) {
-        if (!mutableRoom.isShowQuestion()) {
+        if (!mutableRoom.showQuestion()) {
             return null;
         }
         var currentQuestion = mutableRoom.getCurrentQuestion();
