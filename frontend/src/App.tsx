@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import { QButton } from "./core/components";
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <div className="App">
-        <button onClick={() => setCount((count) => count + 1)}>
+        <QButton background={'red'} onClick={() => setCount((count) => count + 1)}>
           count is {count}
-        </button>
+        </QButton>
     </div>
   )
 }
