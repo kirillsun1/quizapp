@@ -1,16 +1,7 @@
-import { useState } from 'react'
-import { QButton } from "./core/components";
+import { App as GameApp } from './apps/game/App'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export function App() {
   return (
-    <div className="App">
-        <QButton background={'red'} onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </QButton>
-    </div>
+    <GameApp/>
   )
 }
-
-export default App
