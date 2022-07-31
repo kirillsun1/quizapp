@@ -14,6 +14,7 @@ import com.example.app.room.exceptions.RoomNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -30,6 +31,8 @@ class GameService implements RoomService, OngoingQuizService {
 
     @Override
     public Room createRoom(String moderator) {
+        Assert.notNull(moderator, "Moderator cannot be null.");
+
         var uniqueCode = codeGenerator.generate();
         var room = MutableRoom.builder()
                 .code(uniqueCode)
@@ -41,23 +44,32 @@ class GameService implements RoomService, OngoingQuizService {
 
     @Override
     public void joinRoom(String code, String player) {
+        Assert.notNull(code, "Room code cannot be null.");
+        Assert.notNull(player, "Player cannot be null.");
+
         var room = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
         room.getPlayersPoints().putIfAbsent(player, 0);
-        eventPublisher.publishEvent(new RoomChangedEvent(code));
+        notifyAboutRoomChange(code);
     }
 
     @Override
     public void assignQuiz(String requester, String code, int quizId) {
+        Assert.notNull(code, "Room code cannot be null.");
+        Assert.notNull(requester, "Moderator cannot be null.");
+
         MutableRoom room = findRoomForModerator(requester, code);
         if (quizRepository.findById(quizId).isEmpty()) {
             throw new QuizNotFoundException();
         }
         room.setQuizId(quizId);
-        eventPublisher.publishEvent(new RoomChangedEvent(code));
+        notifyAboutRoomChange(code);
     }
 
     @Override
     public void vote(String requester, String roomCode, int choice) {
+        Assert.notNull(roomCode, "Room code cannot be null.");
+        Assert.notNull(requester, "Moderator cannot be null.");
+
         MutableRoom room = roomRepository.findByCode(roomCode).orElseThrow(RoomNotFoundException::new);
         if (room.getModerator().equals(requester)) {
             throw new ModeratorIsNotPlayerException();
@@ -67,6 +79,9 @@ class GameService implements RoomService, OngoingQuizService {
 
     @Override
     public void moveOn(String requester, String code) {
+        Assert.notNull(code, "Room code cannot be null.");
+        Assert.notNull(requester, "Moderator cannot be null.");
+
         MutableRoom room = findRoomForModerator(requester, code);
 
         boolean sendEvent = false;
@@ -89,7 +104,7 @@ class GameService implements RoomService, OngoingQuizService {
         }
 
         if (sendEvent) {
-            eventPublisher.publishEvent(new RoomChangedEvent(code));
+            notifyAboutRoomChange(code);
         }
     }
 
@@ -131,6 +146,10 @@ class GameService implements RoomService, OngoingQuizService {
             throw new PlayerIsNotModeratorException();
         }
         return mutableRoom;
+    }
+
+    private void notifyAboutRoomChange(String code) {
+        eventPublisher.publishEvent(new RoomChangedEvent(code));
     }
 
 }
