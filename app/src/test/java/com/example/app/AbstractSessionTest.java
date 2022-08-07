@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,6 +14,7 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -34,11 +36,11 @@ public class AbstractSessionTest {
 
     protected StompSession createSession(String userName) {
         try {
-            var headers = new HttpHeaders();
-            headers.set("X-Username", userName);
+            String encodedName = Base64.getEncoder().encodeToString(userName.getBytes());
             return client
-                    .connect(String.format("ws://localhost:%d/ws-endpoint", port),
-                            new WebSocketHttpHeaders(headers),
+                    .connect(String.format("ws://localhost:%d/ws-api?playerToken=" + encodedName, port),
+                            new WebSocketHttpHeaders(new HttpHeaders()),
+                            new StompHeaders(),
                             new StompSessionHandlerAdapter() {
                             })
                     .get(5, TimeUnit.SECONDS);
