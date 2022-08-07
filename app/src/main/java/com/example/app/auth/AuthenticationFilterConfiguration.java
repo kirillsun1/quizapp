@@ -19,7 +19,12 @@ public class AuthenticationFilterConfiguration {
 
     @Bean
     AuthenticationFilter authenticationFilter() {
-        return new AuthenticationFilter(createAuthenticationManager(), new PlayerTokenExtractor());
+        AuthenticationFilter authenticationFilter = new AuthenticationFilter(createAuthenticationManager(), new PlayerTokenExtractor());
+        authenticationFilter.setSuccessHandler((request, response, authentication) -> {
+            // default handler makes unnecessary redirections which lead to handshake failure
+            // do nothing here
+        });
+        return authenticationFilter;
     }
 
     private AuthenticationManager createAuthenticationManager() {

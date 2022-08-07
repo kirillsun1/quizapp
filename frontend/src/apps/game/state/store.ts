@@ -1,9 +1,11 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
-import { reducer as playerNameReducer } from './playerNameSlice'
+import { reducer as playerName } from './playerNameSlice'
+import { reducer as gameServer } from '../../../core/ws/gameServerSlice'
 
 export const createStore = () => configureStore({
   reducer: combineReducers({
-    playerName: playerNameReducer,
+    gameServer,
+    playerName,
   }),
 })
 

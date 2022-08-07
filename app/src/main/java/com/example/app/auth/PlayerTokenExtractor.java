@@ -10,7 +10,7 @@ import java.util.Base64;
 
 public class PlayerTokenExtractor implements AuthenticationConverter {
 
-    private static final String PREFIX = "Player ";
+    private static final String AUTH_HEADER_VALUE_PREFIX = "Player ";
 
     private final Base64.Decoder decoder = Base64.getDecoder();
 
@@ -24,15 +24,19 @@ public class PlayerTokenExtractor implements AuthenticationConverter {
             String playerName = new String(decoder.decode(authToken));
             return new PreAuthenticatedAuthenticationToken(playerName, authToken);
         } catch (IllegalArgumentException ex) {
-            throw new BadCredentialsException("Authentication failed. Player name is not encoded to base64 properly", ex);
+            throw new BadCredentialsException("Authentication failed. Player name is not encoded properly", ex);
         }
     }
 
     private String findAuthenticationToken(HttpServletRequest request) {
-        var fromHeader = request.getHeader("Authorization");
-        if (fromHeader != null && fromHeader.startsWith(PREFIX)) {
-            return fromHeader.substring(PREFIX.length());
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null) {
+            if (authHeader.startsWith(AUTH_HEADER_VALUE_PREFIX)) {
+                return authHeader.substring(AUTH_HEADER_VALUE_PREFIX.length());
+            }
+            return null;
         }
+        // WORKAROUND: Browsers don't support adding headers to websocket handshare request
         return request.getParameter("playerToken");
     }
 

@@ -22,7 +22,7 @@ class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-api");
+        registry.addEndpoint("/api").setAllowedOriginPatterns("*");
     }
 
     @Override

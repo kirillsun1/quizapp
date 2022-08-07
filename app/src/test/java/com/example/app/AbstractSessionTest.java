@@ -37,9 +37,11 @@ public class AbstractSessionTest {
     protected StompSession createSession(String userName) {
         try {
             String encodedName = Base64.getEncoder().encodeToString(userName.getBytes());
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Player " + encodedName);
             return client
-                    .connect(String.format("ws://localhost:%d/ws-api?playerToken=" + encodedName, port),
-                            new WebSocketHttpHeaders(new HttpHeaders()),
+                    .connect(String.format("ws://localhost:%d/api", port),
+                            new WebSocketHttpHeaders(headers),
                             new StompHeaders(),
                             new StompSessionHandlerAdapter() {
                             })

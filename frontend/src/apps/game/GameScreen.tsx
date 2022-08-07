@@ -3,12 +3,16 @@ import { QButton, QButtonGroup, QContainer, QInput, QText, QVStack } from '../..
 import { useDispatch, useSelector } from 'react-redux'
 import { assignPlayerName } from './state/playerNameSlice'
 import type { State } from './state/store'
+import { GameServerStatus } from './GameServerStatus'
+import { attemptConnection } from '../../core/ws/gameServerSlice'
 
 export function GameScreen() {
   return (
     <QContainer>
       <SelectName/>
-      <Welcome/>
+      <GameServerStatus>
+        <Welcome/>
+      </GameServerStatus>
     </QContainer>
   )
 }
@@ -16,7 +20,11 @@ export function GameScreen() {
 function SelectName() {
   const currentName = useSelector((state: State) => state.playerName.value)
   const dispatch = useDispatch()
-  const assignName = () => dispatch(assignPlayerName(name))
+  const assignName = () => {
+    dispatch(assignPlayerName(name))
+    // @ts-ignore
+    dispatch(attemptConnection(name))
+  }
 
   const [name, setName] = useState('')
 

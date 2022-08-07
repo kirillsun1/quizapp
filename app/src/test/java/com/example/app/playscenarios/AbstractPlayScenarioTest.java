@@ -47,7 +47,7 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
     protected class ModeratorJoystick extends Joystick {
 
         protected ModeratorJoystick(String playerName) {
-            super(playerName);
+            super("Moderator-" + playerName);
         }
 
         public CreateRoomResponse createRoom() {
@@ -84,7 +84,7 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
     protected class PlayerJoystick extends Joystick {
 
         protected PlayerJoystick(String playerName) {
-            super(playerName);
+            super("Player" + playerName);
         }
 
         public JoinRoomResponse joinRoom() {
