@@ -8,6 +8,8 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: this class is not thread-safe. Probably locking should be added to repository.
+
 @Data
 @Builder
 class MutableRoom {

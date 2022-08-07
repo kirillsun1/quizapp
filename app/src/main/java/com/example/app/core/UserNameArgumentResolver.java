@@ -5,6 +5,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+// TODO: Replace this with player?
 public class UserNameArgumentResolver implements HandlerMethodArgumentResolver {
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
