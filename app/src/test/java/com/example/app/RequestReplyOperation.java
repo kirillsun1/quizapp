@@ -1,6 +1,5 @@
 package com.example.app;
 
-import com.example.app.ResponseMessagesListener;
 import lombok.Builder;
 import org.springframework.messaging.simp.stomp.StompSession;
 
@@ -23,6 +22,7 @@ public class RequestReplyOperation<REQ, RES> {
     public RES execute() {
         session.subscribe("/user/queue/" + operation, responseMessagesListener);
         session.send("/app/" + operation, request);
+        // TODO: unsubscribe!
 
         try {
             var response = responseMessagesListener.getQueue().poll(timeoutInMs, TimeUnit.MILLISECONDS);

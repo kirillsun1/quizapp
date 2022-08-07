@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { QButton, QButtonGroup, QContainer, QInput, QText, QVStack } from '../../core/components'
 import { useDispatch, useSelector } from 'react-redux'
 import { assignPlayerName } from './state/playerNameSlice'
+import { createRoom } from './state/moderatorSlice'
 import type { State } from './state/store'
 import { GameServerStatus } from './GameServerStatus'
 import { attemptConnection } from '../../core/ws/gameServerSlice'
+import { Action, ThunkDispatch } from '@reduxjs/toolkit'
 
 export function GameScreen() {
   return (
@@ -12,6 +14,7 @@ export function GameScreen() {
       <SelectName/>
       <GameServerStatus>
         <Welcome/>
+        <Moderator/>
       </GameServerStatus>
     </QContainer>
   )
@@ -19,14 +22,12 @@ export function GameScreen() {
 
 function SelectName() {
   const currentName = useSelector((state: State) => state.playerName.value)
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<ThunkDispatch<State, {}, Action>>()
+  const [name, setName] = useState('')
   const assignName = () => {
     dispatch(assignPlayerName(name))
-    // @ts-ignore
     dispatch(attemptConnection(name))
   }
-
-  const [name, setName] = useState('')
 
   if (currentName) {
     return null
@@ -44,8 +45,16 @@ function SelectName() {
 
 function Welcome() {
   const currentName = useSelector((state: State) => state.playerName.value)
+  const roomCode = useSelector((state: State) => state.moderator.roomCode)
+  const dispatch = useDispatch<ThunkDispatch<State, {}, Action>>()
+  const hostQuiz = () => {
+    dispatch(createRoom())
+  }
 
   if (!currentName) {
+    return null
+  }
+  if (roomCode) {
     return null
   }
   return (
@@ -55,10 +64,24 @@ function Welcome() {
         <QButton>
           Join Quiz
         </QButton>
-        <QButton>
+        <QButton onClick={hostQuiz}>
           Host Quiz
         </QButton>
       </QButtonGroup>
+    </QVStack>
+  )
+}
+
+function Moderator() {
+  const roomCode = useSelector((state: State) => state.moderator.roomCode)
+  if (!roomCode) {
+    return null
+  }
+
+  return (
+    <QVStack>
+      <QText>You will moderate room {roomCode}!</QText>
+      <QText>Invite players!</QText>
     </QVStack>
   )
 }
