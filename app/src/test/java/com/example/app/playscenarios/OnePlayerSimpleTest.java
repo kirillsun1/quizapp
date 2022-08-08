@@ -86,18 +86,26 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
 
     private String moderatorCreatesRoom() {
         var createRoomResponse = moderator.createRoom();
-        var roomCode = createRoomResponse.code();
-        assertThat(roomCode, is(notNullValue()));
+        var room = createRoomResponse.room();
+        assertThat(room, is(notNullValue()));
+        assertThat(room.code(), is(notNullValue()));
+        assertThat(room.players(), is(empty()));
+        assertThat(room.ongoingQuiz(), is(nullValue()));
 
-        moderator.setRoom(roomCode);
+        moderator.setRoom(room.code());
         moderator.subscribeToRoomEvents();
 
-        return roomCode;
+        return room.code();
     }
 
     private void playerJoinsRoom() throws Exception {
         var joinRoomResponse = player.joinRoom();
         assertThat(joinRoomResponse.ok(), is(true));
+        var room = joinRoomResponse.room();
+        assertThat(room, is(notNullValue()));
+        assertThat(room.code(), is(notNullValue()));
+        assertThat(room.players(), contains(player.playerName));
+        assertThat(room.ongoingQuiz(), is(nullValue()));
 
         player.subscribeToRoomEvents();
 

@@ -5,7 +5,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-// TODO: Replace this with player?
 public class UserNameArgumentResolver implements HandlerMethodArgumentResolver {
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -14,6 +13,10 @@ public class UserNameArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-        return new UserName(SecurityContextHolder.getContext().getAuthentication().getName());
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new IllegalStateException("Could not process message. User is not authenticated.");
+        }
+        return new UserName(authentication.getName());
     }
 }

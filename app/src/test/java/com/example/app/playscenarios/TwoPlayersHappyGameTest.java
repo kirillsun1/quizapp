@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -98,18 +99,26 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
 
     private String moderatorCreatesRoom() {
         var createRoomResponse = moderator.createRoom();
-        var roomCode = createRoomResponse.code();
-        assertThat(roomCode, is(notNullValue()));
+        var room = createRoomResponse.room();
+        assertThat(room, is(notNullValue()));
+        assertThat(room.code(), is(notNullValue()));
+        assertThat(room.players(), is(empty()));
+        assertThat(room.ongoingQuiz(), is(nullValue()));
 
-        moderator.setRoom(roomCode);
+        moderator.setRoom(room.code());
         moderator.subscribeToRoomEvents();
 
-        return roomCode;
+        return room.code();
     }
 
     private void playerJoinsRoom(PlayerJoystick player) {
         var joinRoomResponse = player.joinRoom();
         assertThat(joinRoomResponse.ok(), is(true));
+        var room = joinRoomResponse.room();
+        assertThat(room, is(notNullValue()));
+        assertThat(room.code(), is(notNullValue()));
+        assertThat(room.players(), hasItem(player.playerName));
+        assertThat(room.ongoingQuiz(), is(nullValue()));
 
         player.subscribeToRoomEvents();
         assertThat(player.events.isEmpty(), is(true));

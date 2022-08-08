@@ -36,7 +36,7 @@ class RareScenariosTest extends AbstractPlayScenarioTest {
         player.createSession();
         anotherPlayer.createSession();
 
-        var roomCode = moderator.createRoom().code();
+        var roomCode = moderator.createRoom().room().code();
         player.setRoom(roomCode);
 
         var anotherSessionJoinRoomResponseFuture =

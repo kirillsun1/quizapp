@@ -43,13 +43,14 @@ class GameService implements RoomService, OngoingQuizService {
     }
 
     @Override
-    public void joinRoom(String code, String player) {
+    public Room joinRoom(String code, String player) {
         Assert.notNull(code, "Room code cannot be null.");
         Assert.notNull(player, "Player cannot be null.");
 
         var room = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
         room.getPlayersPoints().putIfAbsent(player, 0);
         notifyAboutRoomChange(code);
+        return roomMapper.toPublic(room);
     }
 
     @Override

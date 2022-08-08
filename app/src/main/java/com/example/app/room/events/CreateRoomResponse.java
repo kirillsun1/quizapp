@@ -1,4 +1,6 @@
 package com.example.app.room.events;
 
-public record CreateRoomResponse(String code) {
+import com.example.app.room.Room;
+
+public record CreateRoomResponse(Room room) {
 }

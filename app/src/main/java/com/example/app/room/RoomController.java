@@ -21,17 +21,16 @@ public class RoomController {
     @MessageMapping("/rooms.create")
     @SendToUser(broadcast = false)
     public CreateRoomResponse createRoom(UserName userName) {
-        return new CreateRoomResponse(roomService.createRoom(userName.value()).code());
+        return new CreateRoomResponse(roomService.createRoom(userName.value()));
     }
 
     @MessageMapping("/rooms/{roomCode}.join")
     @SendToUser(broadcast = false)
     public JoinRoomResponse joinRoom(UserName userName, @DestinationVariable String roomCode) {
         try {
-            roomService.joinRoom(roomCode, userName.value());
-            return new JoinRoomResponse(true);
+            return new JoinRoomResponse(true, roomService.joinRoom(roomCode, userName.value()));
         } catch (BaseGameException ex) {
-            return new JoinRoomResponse(false);
+            return new JoinRoomResponse(false, null);
         }
     }
 
