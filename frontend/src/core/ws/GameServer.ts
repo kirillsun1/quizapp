@@ -85,7 +85,7 @@ class GameServer {
     }
     this.client.subscribe(`/topic/rooms.${roomCode}`, message => {
       console.debug(`Received room[${roomCode}] changed event`, message)
-      callback(JSON.parse(message.body))
+      callback(JSON.parse(message.body).room)
     })
   }
 }
