@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux'
 import { State } from './state/store'
-import { QText, QVStack } from '../../core/components'
+import { QHeading, QStack } from '../../core/components'
 import React from 'react'
 
 export function PlayerWelcome() {
@@ -14,8 +14,8 @@ export function PlayerWelcome() {
     return null
   }
   return (
-    <QVStack>
-      <QText>Hi, {currentName}!</QText>
-    </QVStack>
+    <QStack>
+      <QHeading marginTop={12} marginBottom={6}>Nice to meet you, {currentName}!</QHeading>
+    </QStack>
   )
 }

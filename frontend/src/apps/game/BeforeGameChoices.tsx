@@ -1,4 +1,4 @@
-import { QButton, QButtonGroup, QInput, QVStack } from '../../core/components'
+import { QButton, QHeading, QInput, QSimpleGrid, QStack } from '../../core/components'
 import React, { useState } from 'react'
 import { actions } from './state/gameSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -25,20 +25,26 @@ export function BeforeGameChoices() {
   }
 
   return (
-    <QButtonGroup>
-      <QVStack>
-        <QInput
-          placeholder={'Room code'}
-          value={joinRoomCode}
-          onChange={event => setJoinRoomCode(event.target.value)}/>
-        <QButton onClick={joinQuiz}>
-          Join Quiz
-        </QButton>
-      </QVStack>
+    <QStack>
+      <QHeading fontSize={'xl'}>Select mode:</QHeading>
 
-      <QButton onClick={hostQuiz}>
-        Host Quiz
-      </QButton>
-    </QButtonGroup>
+      <QSimpleGrid columns={[1, 2]} spacing={10}>
+        <QStack direction={'row'}>
+          <QInput
+            placeholder={'Room code'}
+            value={joinRoomCode}
+            onChange={event => setJoinRoomCode(event.target.value)}
+            type={'number'}
+            size={'lg'}
+          />
+          <QButton onClick={joinQuiz} size="lg">
+            Join Quiz
+          </QButton>
+        </QStack>
+        <QButton onClick={hostQuiz} size="lg">
+          Host Quiz
+        </QButton>
+      </QSimpleGrid>
+    </QStack>
   )
 }

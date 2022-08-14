@@ -1,7 +1,5 @@
 import React from 'react'
-import { QContainer, QText } from '../../core/components'
-import { useSelector } from 'react-redux'
-import type { State } from './state/store'
+import { QContainer } from '../../core/components'
 import { GameServerStatus } from './GameServerStatus'
 import { SelectName } from './SelectName'
 import { BeforeGameChoices } from './BeforeGameChoices'
@@ -10,13 +8,8 @@ import { ModeratorScreen } from './ModeratorScreen'
 import { PlayerScreen } from './PlayerScreen'
 
 export function GameScreen() {
-  const stateSnapshot = useSelector((state: State) => JSON.stringify(state))
-
   return (
-    <QContainer maxW="6xl">
-      <QText fontSize={'xs'}>
-        {stateSnapshot}
-      </QText>
+    <QContainer maxW="5xl">
       <SelectName/>
       <GameServerStatus>
         <PlayerWelcome/>

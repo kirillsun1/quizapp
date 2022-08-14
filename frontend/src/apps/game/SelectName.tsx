@@ -4,7 +4,7 @@ import { Action, ThunkDispatch } from '@reduxjs/toolkit'
 import React, { useState } from 'react'
 import { actions } from './state/gameSlice'
 import { attemptConnection } from '../../core/ws/gameServerSlice'
-import { QButton, QInput, QVStack } from '../../core/components'
+import { QButton, QHeading, QInput, QStack } from '../../core/components'
 
 export function SelectName() {
   const currentName = useSelector((state: State) => state.game.playerName)
@@ -19,12 +19,18 @@ export function SelectName() {
     return null
   }
   return (
-    <QVStack>
-      <QInput
-        placeholder={'Select name for yourself'}
-        value={name}
-        onChange={event => setName(event.target.value)}/>
-      <QButton onClick={assignName}>OK</QButton>
-    </QVStack>
+    <QStack>
+      <QHeading marginTop={12} marginBottom={6}>Welcome to Quiz!</QHeading>
+
+      <QStack maxW={'2xl'} direction={'row'}>
+        <QInput
+          placeholder={'How can we call you?'}
+          value={name}
+          maxLength={30}
+          onChange={event => setName(event.target.value)}
+        />
+        <QButton onClick={assignName} disabled={!name}>Go!</QButton>
+      </QStack>
+    </QStack>
   )
 }

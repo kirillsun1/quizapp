@@ -1,20 +1,26 @@
 // Q = Quiz
 
 export {
-    // forms
-    Button as QButton,
-    ButtonGroup as QButtonGroup,
-    Text as QText,
-    Input as QInput,
+  // forms
+  Button as QButton,
+  ButtonGroup as QButtonGroup,
+  Text as QText,
+  Heading as QHeading,
+  Input as QInput,
 
-    // Layout
-    Container as QContainer,
-    Center as QCenter,
-    Box as QBox,
+  // Layout
+  Container as QContainer,
+  Center as QCenter,
+  Box as QBox,
 
-    VStack as QVStack,
+  Stack as QStack,
+  VStack as QVStack,
 
-    // flex
-    Flex as QFlex,
-    Spacer as QSpacer,
+  SimpleGrid as QSimpleGrid,
+
+  SlideFade as QSlideFade,
+
+  // flex
+  Flex as QFlex,
+  Spacer as QSpacer,
 } from '@chakra-ui/react'
