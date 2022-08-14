@@ -20,5 +20,5 @@ export interface Room {
   code: string;
   ongoingQuiz?: OngoingQuiz;
   moderator: string;
-  players: string;
+  players: string[];
 }

@@ -3,14 +3,14 @@ import { server } from '../../../core/ws/GameServer'
 import { Room } from '../../../domain/Room'
 
 type Loadings = {
-  createRoom: boolean;
-  joinRoom: boolean;
+  createRoom: boolean
+  joinRoom: boolean
 }
 
 type GameState = {
-  playerName: string;
-  mode: 'player' | 'moderator' | undefined;
-  room?: Room;
+  playerName: string
+  mode: 'player' | 'moderator' | undefined
+  room?: Room
   loadings: Loadings
 }
 
