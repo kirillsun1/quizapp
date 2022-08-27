@@ -1,22 +1,14 @@
 import React from 'react'
-import { QContainer } from '../../core/components'
 import { GameServerStatus } from './GameServerStatus'
-import { SelectName } from './SelectName'
-import { BeforeGameChoices } from './BeforeGameChoices'
-import { PlayerWelcome } from './PlayerWelcome'
-import { ModeratorScreen } from './ModeratorScreen'
-import { PlayerScreen } from './PlayerScreen'
+import { Intro } from './before-game/Intro'
+import { ModeratorMode } from './moderator/ModeratorMode'
+import { PlayerMode } from './player/PlayerMode'
 
-export function GameScreen() {
-  return (
-    <QContainer maxW="5xl">
-      <SelectName/>
-      <GameServerStatus>
-        <PlayerWelcome/>
-        <BeforeGameChoices/>
-        <ModeratorScreen/>
-        <PlayerScreen/>
-      </GameServerStatus>
-    </QContainer>
-  )
-}
+type Props = { mode: 'player' | 'moderator' }
+
+export const GameScreen = ({mode}: Props) => (
+  <GameServerStatus>
+    <Intro/>
+    {mode === 'player' ? <PlayerMode/> : <ModeratorMode/>}
+  </GameServerStatus>
+)

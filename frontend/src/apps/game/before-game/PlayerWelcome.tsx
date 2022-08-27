@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux'
-import { State } from './state/store'
-import { QHeading, QStack } from '../../core/components'
+import { State } from '../state/store'
+import { QHeading, QStack } from '../../../core/components'
 import React from 'react'
 
 export function PlayerWelcome() {

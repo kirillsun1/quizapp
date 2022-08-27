@@ -28,55 +28,52 @@ class GameServer {
   }
 
   async createRoom(): Promise<Room> {
-    return new Promise<Room>((resolve, reject) => {
-      if (!this.client) {
-        throw new Error('No client')
-      }
-      const key = `rooms.create-${new Date()}`
-      const subscription = this.client.subscribe('/user/queue/rooms.create', message => {
-        try {
-          const room = JSON.parse(message.body).room
-          if (room) {
-            resolve(room)
-          } else {
-            reject('Didn\'t receive a proper room -> ' + room)
-          }
-        } catch (e) {
-          reject(e)
-        } finally {
-          this.stompSubscriptions.get(key)?.unsubscribe()
-          this.stompSubscriptions.delete(key)
-        }
-      })
-      this.stompSubscriptions.set(key, subscription)
-      this.client.send('/app/rooms.create', {}, '')
-    })
+    const response = await this.convertSendAndReceive<unknown>({operationId: 'rooms.create'})
+    if (!this.isRoomResponse(response)) {
+      throw Error(`Bad response from server ${JSON.stringify(response)}`)
+    }
+    return response.room
   }
 
   async joinRoom(roomCode: string): Promise<Room> {
-    return new Promise<Room>((resolve, reject) => {
-      if (!this.client) {
-        throw new Error('No client')
-      }
-      const key = `rooms${roomCode}.join-${new Date()}`
-      const subscription = this.client.subscribe(`/user/queue/rooms/${roomCode}.join`, message => {
-        try {
-          const body = JSON.parse(message.body)
-          const ok = body.ok
-          if (ok && body.room)
-            resolve(body.room)
-          else
-            reject()
-        } catch (e) {
-          reject(e)
-        } finally {
-          this.stompSubscriptions.get(key)?.unsubscribe()
-          this.stompSubscriptions.delete(key)
-        }
-      })
-      this.stompSubscriptions.set(key, subscription)
-      this.client.send(`/app/rooms/${roomCode}.join`, {}, '')
+    const response = await this.convertSendAndReceive<unknown>({operationId: `rooms/${roomCode}.join`})
+    if (!this.isRoomResponse(response)) {
+      throw Error(`Bad response from server ${JSON.stringify(response)}`)
+    }
+    return response.room
+  }
+
+  private isRoomResponse(response: unknown): response is { room: Room } {
+    return typeof response === 'object' && response !== null && 'room' in response
+  }
+
+  async assignQuiz(roomCode: string, quizId: number) {
+    const response = await this.convertSendAndReceive<{ ok: boolean }>({
+      operationId: `rooms/${roomCode}/quiz.assign`,
+      body: {quizId},
     })
+    if (!response.ok) {
+      throw new Error('Could not assign quiz')
+    }
+  }
+
+  async moveOn(roomCode: string) {
+    const response = await this.convertSendAndReceive<{ ok: boolean }>({
+      operationId: `rooms/${roomCode}/quiz.move-on`,
+    })
+    if (!response.ok) {
+      throw new Error('Could not move on')
+    }
+  }
+
+  async vote(roomCode: string, answer: number) {
+    const response = await this.convertSendAndReceive<{ ok: boolean }>({
+      operationId: `rooms/${roomCode}/quiz.vote`,
+      body: {choice: answer},
+    })
+    if (!response.ok) {
+      throw new Error('Could not vote')
+    }
   }
 
   subscribeToRoomChanges(roomCode: string, callback: (room: Room) => void) {
@@ -86,6 +83,28 @@ class GameServer {
     this.client.subscribe(`/topic/rooms.${roomCode}`, message => {
       console.debug(`Received room[${roomCode}] changed event`, message)
       callback(JSON.parse(message.body).room)
+    })
+  }
+
+  private convertSendAndReceive<T>({operationId, body}: { operationId: string, body?: any }): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      if (!this.client) {
+        throw new Error('No client')
+      }
+      const subscriptionKey = `${new Date()}-${operationId}`
+      const subscription = this.client.subscribe(`/user/queue/${operationId}`, message => {
+        try {
+          const body = JSON.parse(message.body)
+          resolve(body)
+        } catch (e) {
+          reject(e)
+        } finally {
+          this.stompSubscriptions.get(subscriptionKey)?.unsubscribe()
+          this.stompSubscriptions.delete(subscriptionKey)
+        }
+      })
+      this.stompSubscriptions.set(subscriptionKey, subscription)
+      this.client.send(`/app/${operationId}`, {}, body ? JSON.stringify(body) : '')
     })
   }
 }

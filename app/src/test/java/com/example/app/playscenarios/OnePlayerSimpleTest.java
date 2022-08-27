@@ -136,7 +136,6 @@ class OnePlayerSimpleTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.NOT_STARTED));
         assertThat(ongoingQuiz.points(), is(aMapWithSize(1)));
         assertThat(ongoingQuiz.points(), hasEntry(player.playerName, 0));
-        assertThat(ongoingQuiz.currentQuestion(), is(nullValue()));
     }
 
     private void moderatorStartsQuiz() throws Exception {

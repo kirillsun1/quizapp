@@ -3,11 +3,20 @@ import ReactDOM from 'react-dom/client'
 import { App } from './App'
 import { ChakraProvider, extendTheme, withDefaultColorScheme } from '@chakra-ui/react'
 
-const theme = extendTheme(
-  withDefaultColorScheme({
-    colorScheme: 'green',
-  }),
-)
+const theme = {
+  ...extendTheme(
+    withDefaultColorScheme({
+      colorScheme: 'green',
+    }),
+  ),
+  styles: {
+    global: {
+      'body': {
+        minHeight: '100vh',
+      },
+    },
+  },
+}
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
