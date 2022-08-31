@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { State } from './state/store'
-import { QBadge, QBox, QButton, QCircularProgress, QFlex, QText } from '../../core/components'
+import { QBadge, QBox, QButton, QCircularProgress, QStack, QText } from '../../core/components'
 import { actions } from './state/gameSlice'
 import { OngoingQuizStatus, Room } from '../../domain/Room'
 
@@ -11,24 +11,47 @@ type Props = {
 
 export const GameServerStatus = ({children}: Props) => (
   <>
-    {
-      import.meta.env.MODE === 'development'
-        ? (
-          <QFlex margin={4}>
-            <QBox mr={12}>
-              <QText>
-                Server status
-                <ServerStatusBadge/>
-              </QText>
-            </QBox>
-            <StateChangers/>
-          </QFlex>
-        )
-        : null
-    }
+    <DebugBox/>
     {children}
   </>
 )
+
+function DebugBox() {
+  const [show, setShow] = useState(false)
+
+  return (
+    import.meta.env.MODE === 'development'
+      ? (
+        <QBox
+          position={'absolute'}
+          background={'white'}
+          maxWidth={'2xl'}
+          borderRadius={16}
+          top={'5px'}
+          left={'5px'}
+          opacity={'0.85'}
+        >
+          <QButton size={'xs'} onClick={() => setShow(!show)}>Show debug</QButton>
+
+          {
+            show ? (
+                <QStack margin={4}>
+                  <QBox mr={12}>
+                    <QText>
+                      Server status
+                      <ServerStatusBadge/>
+                    </QText>
+                  </QBox>
+                  <StateChangers/>
+                </QStack>
+              )
+              : null
+          }
+        </QBox>
+      )
+      : null
+  )
+}
 
 function ServerStatusBadge() {
   const status = useSelector((state: State) => state.gameServer)
@@ -135,7 +158,7 @@ function StateChangers() {
   }
 
   return (
-    <QFlex gap={1} wrap={'wrap'}>
+    <QStack>
       {
         Object.keys(states)
           .map(state => (
@@ -147,6 +170,6 @@ function StateChangers() {
             </QButton>
           ))
       }
-    </QFlex>
+    </QStack>
   )
 }

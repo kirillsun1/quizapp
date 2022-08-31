@@ -13,6 +13,7 @@ const theme = {
     global: {
       'body': {
         minHeight: '100vh',
+        color: 'green.600',
       },
     },
   },

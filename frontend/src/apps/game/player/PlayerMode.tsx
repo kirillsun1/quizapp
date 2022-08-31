@@ -4,6 +4,7 @@ import { State } from '../state/store'
 import {
   QBox,
   QButton,
+  QCenter,
   QCircularProgress,
   QContainer,
   QFlex,
@@ -25,12 +26,12 @@ export function PlayerMode() {
   }
 
   return (
-    <QContainer maxW={'container.lg'}>
+    <QContainer maxW={'container.lg'} minH={'100vh'}>
       <QBox
-        borderRadius={12}
-        color={'darkgreen'}
-        marginTop={12}
-        marginBottom={6}
+        background={'white'}
+        paddingY={8}
+        paddingX={16}
+        borderRadius={24}
       >
         <QFlex
           direction={'row'}
@@ -38,9 +39,10 @@ export function PlayerMode() {
           alignItems={'center'}
           wrap={'wrap'}
         >
-          <QHeading>
-            Welcome to the room!
-          </QHeading>
+          <QBox>
+            <QHeading marginBottom={2}>Room</QHeading>
+          </QBox>
+
           <QFlex alignItems={'center'}>
             <QBox mr={12}>
               <QText fontWeight="bold">{room.code}</QText>
@@ -75,13 +77,19 @@ const Activity = ({quizStatus}: { quizStatus: OngoingQuizStatus }) => {
 }
 
 const NotStarted = () =>
-  <QStack spacing={10}>
-    <QFlex alignItems={'center'}>
-      <QCircularProgress mr={2} isIndeterminate/>
-      <QHeading size={'md'}>Please wait, moderator will start the quiz soon</QHeading>
-    </QFlex>
-    <QText>Invite more friends to have fun!</QText>
-  </QStack>
+  <QBox
+    background={'white'}
+    paddingY={8}
+    paddingX={16}
+    borderRadius={24}>
+    <QCenter>
+      <QFlex alignItems={'center'}>
+        <QCircularProgress mr={2} isIndeterminate/>
+        <QHeading size={'md'}>Please wait, moderator will start the quiz soon</QHeading>
+      </QFlex>
+    </QCenter>
+  </QBox>
+
 
 function QuestionInProgress() {
   const question = useSelector((state: State) => state.game.room?.ongoingQuiz?.currentQuestion)
