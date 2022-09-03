@@ -15,7 +15,12 @@ export function SelectRoom() {
 
   return (
     <QCenter minH={'100vh'}>
-      <QBox background={'white'} padding={16} borderRadius={24}>
+      <QBox
+        background={'white'}
+        padding={16}
+        borderRadius={36}
+        boxShadow="xl"
+      >
         <QStack w={'xl'} px={'2'}>
           <QBox marginBottom={6}>
             <QHeading marginBottom={2}>Nice to meet you, {name}!</QHeading>

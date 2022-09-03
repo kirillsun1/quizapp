@@ -9,6 +9,7 @@ import {
   QContainer,
   QFlex,
   QHeading,
+  QScaleFade,
   QSimpleGrid,
   QStack,
   QText,
@@ -27,40 +28,43 @@ export function PlayerMode() {
 
   return (
     <QContainer maxW={'container.lg'} minH={'100vh'}>
-      <QBox
-        background={'white'}
-        paddingY={8}
-        paddingX={16}
-        borderRadius={24}
-      >
-        <QFlex
-          direction={'row'}
-          justifyContent={'space-between'}
-          alignItems={'center'}
-          wrap={'wrap'}
+      <QStack paddingTop={12} gap={6}>
+        <QBox
+          background={'white'}
+          paddingY={8}
+          paddingX={16}
+          borderRadius={36}
+          boxShadow="xl"
         >
-          <QBox>
-            <QHeading marginBottom={2}>Room</QHeading>
-          </QBox>
+          <QFlex
+            direction={'row'}
+            justifyContent={'space-between'}
+            alignItems={'center'}
+            wrap={'wrap'}
+          >
+            <QBox>
+              <QHeading marginBottom={2}>Room</QHeading>
+            </QBox>
 
-          <QFlex alignItems={'center'}>
-            <QBox mr={12}>
-              <QText fontWeight="bold">{room.code}</QText>
-              <QText fontSize="sm">Room</QText>
-            </QBox>
-            <QBox mr={12}>
-              <QText fontWeight="bold">{room.moderator}</QText>
-              <QText fontSize="sm">Moderator</QText>
-            </QBox>
-            <QBox mr={12}>
-              <QText fontWeight="bold">{room.players.length}</QText>
-              <QText fontSize="sm">Player(s)</QText>
-            </QBox>
+            <QFlex alignItems={'center'}>
+              <QBox mr={12}>
+                <QText fontWeight="bold">{room.code}</QText>
+                <QText fontSize="sm">Room</QText>
+              </QBox>
+              <QBox mr={12}>
+                <QText fontWeight="bold">{room.moderator}</QText>
+                <QText fontSize="sm">Moderator</QText>
+              </QBox>
+              <QBox mr={12}>
+                <QText fontWeight="bold">{room.players.length}</QText>
+                <QText fontSize="sm">Player(s)</QText>
+              </QBox>
+            </QFlex>
           </QFlex>
-        </QFlex>
-      </QBox>
+        </QBox>
 
-      <Activity quizStatus={roomStatus}/>
+        <Activity quizStatus={roomStatus}/>
+      </QStack>
     </QContainer>
   )
 }
@@ -68,26 +72,40 @@ export function PlayerMode() {
 const Activity = ({quizStatus}: { quizStatus: OngoingQuizStatus }) => {
   switch (quizStatus) {
     case OngoingQuizStatus.NOT_STARTED:
-      return <NotStarted/>
+      return <Pause status={'notStarted'}/>
     case OngoingQuizStatus.QUESTION_IN_PROGRESS:
       return <QuestionInProgress/>
+    case OngoingQuizStatus.WAITING:
+      return <Pause status={'betweenRounds'}/>
+    case OngoingQuizStatus.DONE:
+      return <Pause status={'done'}/>
     default:
-      return <QText>Done</QText>
+      return <QText>?</QText>
   }
 }
 
-const NotStarted = () =>
+const pauseMessages = {
+  'notStarted': 'Quiz will start soon',
+  'betweenRounds': 'Wait for the next question',
+  'done': 'Quiz finished! Thank you for participation!',
+}
+
+const Pause = ({status}: { status: 'notStarted' | 'betweenRounds' | 'done' }) =>
   <QBox
     background={'white'}
     paddingY={8}
     paddingX={16}
-    borderRadius={24}>
-    <QCenter>
-      <QFlex alignItems={'center'}>
-        <QCircularProgress mr={2} isIndeterminate/>
-        <QHeading size={'md'}>Please wait, moderator will start the quiz soon</QHeading>
-      </QFlex>
-    </QCenter>
+    borderRadius={36}
+    boxShadow="xl"
+  >
+    <QStack>
+      {
+        status !== 'done' ? <QCenter> <QCircularProgress mr={2} isIndeterminate color="green.400"/> </QCenter> : null
+      }
+      <QCenter>
+        <QHeading size={'md'}>{pauseMessages[status]}</QHeading>
+      </QCenter>
+    </QStack>
   </QBox>
 
 
@@ -103,34 +121,41 @@ function QuestionInProgress() {
   }
 
   return (
-    <QBox
-      background={'blue.50'}
-      color={'darkblue'}
-      padding={4}
-      borderRadius={4}
-    >
-      <QStack spacing={4}>
-        <QHeading size={'md'}>Your question is:</QHeading>
-        <QBox
-          background={'white'}
-          padding={5}
-        >
-          <QHeading>{question.text}</QHeading>
-        </QBox>
-        <QSimpleGrid columns={2} spacing={'10'}>
-          {
-            question.answers.map((answer, index) =>
-              <QButton
-                key={answer}
-                colorScheme={'blue'}
-                size={'lg'}
-                onClick={() => vote(index)}
-              >
-                {answer}
-              </QButton>)
-          }
-        </QSimpleGrid>
-      </QStack>
-    </QBox>
+    <QScaleFade in={!!question} initialScale={0.7}>
+      <QBox
+        background={'white'}
+        paddingY={14}
+        paddingX={16}
+        borderRadius={36}
+        boxShadow="xl"
+      >
+        <QStack spacing={8}>
+          <QBox
+            background={'cyan.500'}
+            color={'cyan.50'}
+            padding={6}
+            borderRadius={36}
+          >
+            <QCenter>
+              <QHeading size={'lg'}>{question.text}</QHeading>
+            </QCenter>
+          </QBox>
+          <QSimpleGrid padding={4} columns={2} spacing={10}>
+            {
+              question.answers.map((answer, index) =>
+                <QButton
+                  key={answer}
+                  colorScheme={'green'}
+                  size={'lg'}
+                  onClick={() => vote(index)}
+                  borderRadius={36}
+                >
+                  {answer}
+                </QButton>)
+            }
+          </QSimpleGrid>
+        </QStack>
+      </QBox>
+    </QScaleFade>
   )
 }

@@ -30,7 +30,7 @@ export {
   Grid as QGrid,
   GridItem as QGridItem,
 
-  SlideFade as QSlideFade,
+  ScaleFade as QScaleFade,
 
   // flex
   Flex as QFlex,

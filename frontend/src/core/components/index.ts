@@ -1,2 +1,2 @@
 export * from './chakra'
-export * from './background/QBackground'
+export * from './custom/QBackground'

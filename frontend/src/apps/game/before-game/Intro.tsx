@@ -20,24 +20,32 @@ export function Intro() {
   }
   return (
     <QCenter minH={'100vh'}>
-      <QBox background={'white'} padding={16} borderRadius={24}>
-        <QStack width={'xl'} paddingX={2}>
-          <QBox marginBottom={6}>
-            <QHeading marginBottom={2}>Hey there!</QHeading>
-            <QHeading size={'md'}>Time for a quiz! But before we start...</QHeading>
-          </QBox>
+      <QBox
+        background={'white'}
+        padding={16}
+        borderRadius={36}
+        boxShadow="xl"
+      >
+        <QBox>
+          <QStack width={'xl'} paddingX={2}>
+            <QBox marginBottom={6}>
+              <QHeading marginBottom={2}>Hey there!</QHeading>
+              <QHeading size={'md'}>Time for a quiz! But before we start...</QHeading>
+            </QBox>
 
 
-          <QStack maxW={'2xl'} direction={'row'}>
-            <QInput
-              placeholder={'How can we call you?'}
-              value={name}
-              maxLength={30}
-              onChange={event => setName(event.target.value)}
-            />
-            <QButton onClick={assignName} disabled={!name}>Go!</QButton>
+            <QStack maxW={'2xl'} direction={'row'}>
+              <QInput
+                placeholder={'How can we call you?'}
+                value={name}
+                maxLength={30}
+                onChange={event => setName(event.target.value)}
+              />
+              <QButton onClick={assignName} disabled={!name}>Go!</QButton>
+            </QStack>
           </QStack>
-        </QStack>
+        </QBox>
+
       </QBox>
     </QCenter>
   )
