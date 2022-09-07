@@ -32,7 +32,7 @@ export function ModeratorMode() {
   const room = useSelector((state: State) => state.game.room)
 
   return (
-    <QContainer maxW={'container.lg'}>
+    <QContainer maxW={'container.lg'} minH={'100vh'}>
       {
         !room ? <CreateRoom/> : <InRoom/>
       }
@@ -48,25 +48,29 @@ function CreateRoom() {
   }
 
   return (
-    <>
-      <QHeading marginTop={12} marginBottom={6}>
-        Host Quiz
-      </QHeading>
-      {
-        createRoomInProgress
-          ? (
-            <QVStack>
-              <QCircularProgress isIndeterminate/>
-              <QText>Creating room...</QText>
-            </QVStack>
-          )
-          : (
-            <QButton size={'lg'} onClick={createRoom}>
-              Create Room
-            </QButton>
-          )
-      }
-    </>
+    <QCenter minH={'100vh'}>
+      <QBox
+        background={'white'}
+        padding={16}
+        borderRadius={36}
+        boxShadow="xl"
+      >
+        {
+          createRoomInProgress
+            ? (
+              <QVStack>
+                <QCircularProgress isIndeterminate/>
+                <QText>Creating room...</QText>
+              </QVStack>
+            )
+            : (
+              <QButton size={'lg'} onClick={createRoom}>
+                Create Room
+              </QButton>
+            )
+        }
+      </QBox>
+    </QCenter>
   )
 }
 
@@ -75,12 +79,13 @@ function InRoom() {
   const {isOpen, onOpen, onClose} = useDisclosure()
 
   return (
-    <>
+    <QStack paddingTop={12} gap={6}>
       <QBox
-        borderRadius={12}
-        color={'darkgreen'}
-        marginTop={12}
-        marginBottom={6}
+        background={'white'}
+        paddingY={8}
+        paddingX={16}
+        borderRadius={36}
+        boxShadow="xl"
       >
         <QFlex
           direction={'row'}
@@ -116,19 +121,23 @@ function InRoom() {
         </QDrawerContent>
       </QDrawer>
 
-      <QCenter>
-        <QText mb={5}>Share room code to players so they can join!</QText>
-      </QCenter>
-
-      <QSimpleGrid columns={2}>
-        <QuizSetup/>
-        <StartGame/>
-      </QSimpleGrid>
+      <QBox
+        background={'white'}
+        paddingY={8}
+        paddingX={16}
+        borderRadius={36}
+        boxShadow="xl"
+      >
+        <QSimpleGrid columns={2} spacingX={8}>
+          <QuizSetup/>
+          <StartGame/>
+        </QSimpleGrid>
+      </QBox>
 
       <RoundInProgress/>
 
       <RoundFinished/>
-    </>
+    </QStack>
   )
 }
 
