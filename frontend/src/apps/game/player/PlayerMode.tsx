@@ -134,7 +134,7 @@ function QuestionInProgress() {
             background={'cyan.500'}
             color={'cyan.50'}
             padding={6}
-            borderRadius={36}
+            borderRadius={20}
           >
             <QCenter>
               <QHeading size={'lg'}>{question.text}</QHeading>
@@ -148,7 +148,7 @@ function QuestionInProgress() {
                   colorScheme={'green'}
                   size={'lg'}
                   onClick={() => vote(index)}
-                  borderRadius={36}
+                  borderRadius={20}
                 >
                   {answer}
                 </QButton>)
