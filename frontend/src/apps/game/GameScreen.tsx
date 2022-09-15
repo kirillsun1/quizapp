@@ -10,13 +10,13 @@ import { State } from './state/store'
 type Props = { mode: 'player' | 'moderator' }
 
 export function GameScreen({mode}: Props) {
-  const playerName = useSelector((state: State) => state.game.playerName)
+  const playerNameAssigned = useSelector((state: State) => !!state.game.playerName)
 
   return (
     <GameServerStatus>
       <QBackground>
         {
-          !playerName
+          !playerNameAssigned
             ? <Intro/>
             : (mode === 'player' ? <PlayerMode/> : <ModeratorMode/>)
         }

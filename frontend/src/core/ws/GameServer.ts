@@ -27,7 +27,7 @@ class GameServer {
     })
   }
 
-  async createRoom(): Promise<Room> {
+  async createRoom(): Promise<Room | null> {
     const response = await this.convertSendAndReceive<unknown>({operationId: 'rooms.create'})
     if (!this.isRoomResponse(response)) {
       throw Error(`Bad response from server ${JSON.stringify(response)}`)
@@ -35,7 +35,7 @@ class GameServer {
     return response.room
   }
 
-  async joinRoom(roomCode: string): Promise<Room> {
+  async joinRoom(roomCode: string): Promise<Room | null> {
     const response = await this.convertSendAndReceive<unknown>({operationId: `rooms/${roomCode}.join`})
     if (!this.isRoomResponse(response)) {
       throw Error(`Bad response from server ${JSON.stringify(response)}`)
@@ -43,7 +43,7 @@ class GameServer {
     return response.room
   }
 
-  private isRoomResponse(response: unknown): response is { room: Room } {
+  private isRoomResponse(response: unknown): response is { room: Room | null } {
     return typeof response === 'object' && response !== null && 'room' in response
   }
 

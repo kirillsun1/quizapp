@@ -19,18 +19,24 @@ const createRoom = createAsyncThunk<void, undefined>(
     dispatch(slice.actions.changeLoading({loadingKey: 'createRoom', value: true}))
     const room = await server.createRoom()
     dispatch(slice.actions.changeLoading({loadingKey: 'createRoom', value: false}))
-    dispatch(slice.actions.updateRoom(room))
-    server.subscribeToRoomChanges(room.code, (room) => dispatch(slice.actions.updateRoom(room)))
+    // TODO: implement case if room could not be created
+    dispatch(slice.actions.updateRoom(room!))
+    server.subscribeToRoomChanges(room!.code, (room) => dispatch(slice.actions.updateRoom(room)))
   })
 
 const joinRoom = createAsyncThunk<void, string>(
   'JOIN_ROOM',
   async (roomCode, {dispatch}) => {
-    dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: true}))
-    const room = await server.joinRoom(roomCode)
-    dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: false}))
-    dispatch(slice.actions.updateRoom(room))
-    server.subscribeToRoomChanges(roomCode, (room) => dispatch(slice.actions.updateRoom(room)))
+    try {
+      dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: true}))
+      const room = await server.joinRoom(roomCode)
+      if (room) {
+        server.subscribeToRoomChanges(roomCode, (room) => dispatch(slice.actions.updateRoom(room)))
+        dispatch(slice.actions.updateRoom(room))
+      }
+    } finally {
+      dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: false}))
+    }
   })
 
 const assignQuiz = createAsyncThunk<void, number, { state: { game: GameState } }>(

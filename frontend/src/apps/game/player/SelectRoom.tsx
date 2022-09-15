@@ -7,6 +7,7 @@ import { State } from '../state/store'
 
 export function SelectRoom() {
   const name = useSelector((state: State) => state.game.playerName)
+  const joiningRoom = useSelector((state: State) => state.game.loadings.joinRoom)
   const [roomCode, setRoomCode] = useState('')
   const dispatch = useDispatch<ThunkDispatch<State, {}, Action>>()
   const joinRoom = () => {
@@ -29,12 +30,19 @@ export function SelectRoom() {
 
           <QStack maxW={'2xl'} direction={'row'}>
             <QInput
+              disabled={joiningRoom}
               placeholder={'Room PIN'}
               value={roomCode}
               maxLength={30}
               onChange={event => setRoomCode(event.target.value)}
             />
-            <QButton onClick={joinRoom} disabled={!roomCode}>Go!</QButton>
+            <QButton
+              isLoading={joiningRoom}
+              disabled={!roomCode}
+              onClick={joinRoom}
+            >
+              Enter
+            </QButton>
           </QStack>
         </QStack>
       </QBox>

@@ -1,18 +1,19 @@
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { State } from '../state/store'
 import { Action, ThunkDispatch } from '@reduxjs/toolkit'
-import React, { useState } from 'react'
 import { actions } from '../state/gameSlice'
 import { attemptConnection } from '../../../core/ws/gameServerSlice'
 import { QBox, QButton, QCenter, QHeading, QInput, QStack } from '../../../core/components'
 
 export function Intro() {
   const currentName = useSelector((state: State) => state.game.playerName)
+  const connecting = useSelector((state: State) => state.gameServer.connecting)
   const dispatch = useDispatch<ThunkDispatch<State, {}, Action>>()
   const [name, setName] = useState('')
-  const assignName = () => {
+  const assignName = async () => {
+    await dispatch(attemptConnection(name))
     dispatch(actions.selectName(name))
-    dispatch(attemptConnection(name))
   }
 
   if (currentName) {
@@ -30,22 +31,27 @@ export function Intro() {
           <QStack width={'xl'} paddingX={2}>
             <QBox marginBottom={6}>
               <QHeading marginBottom={2}>Hey there!</QHeading>
-              <QHeading size={'md'}>Time for a quiz! But before we start...</QHeading>
+              <QHeading size={'md'}>How can we call you?</QHeading>
             </QBox>
-
 
             <QStack maxW={'2xl'} direction={'row'}>
               <QInput
-                placeholder={'How can we call you?'}
+                disabled={connecting}
+                placeholder={'Name'}
                 value={name}
                 maxLength={30}
                 onChange={event => setName(event.target.value)}
               />
-              <QButton onClick={assignName} disabled={!name}>Go!</QButton>
+              <QButton
+                isLoading={connecting}
+                disabled={!name}
+                onClick={assignName}
+              >
+                Go!
+              </QButton>
             </QStack>
           </QStack>
         </QBox>
-
       </QBox>
     </QCenter>
   )
