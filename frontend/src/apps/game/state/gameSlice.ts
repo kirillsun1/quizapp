@@ -5,12 +5,14 @@ import { Room } from '../../../domain/Room'
 type Loadings = {
   createRoom: boolean
   joinRoom: boolean
+  voting: boolean
 }
 
 type GameState = {
   playerName: string
-  room?: Room
+  room: Room | undefined
   loadings: Loadings
+  currentAnswer: number | undefined
 }
 
 const createRoom = createAsyncThunk<void, undefined>(
@@ -55,31 +57,45 @@ const moveOn = createAsyncThunk<void, never, { state: { game: GameState } }>(
     await server.moveOn(getState().game.room!.code)
   })
 
-
 const vote = createAsyncThunk<void, number, { state: { game: GameState } }>(
   'VOTE',
-  async (answer, {getState}) => {
-    await server.vote(getState().game.room!.code, answer)
+  async (answer, {getState, dispatch}) => {
+    try {
+      dispatch(slice.actions.changeLoading({loadingKey: 'voting', value: true}))
+      dispatch(slice.actions.selectAnswer(answer))
+      await server.vote(getState().game.room!.code, answer)
+    } finally {
+      dispatch(slice.actions.changeLoading({loadingKey: 'voting', value: false}))
+    }
   })
 
 const slice = createSlice({
   name: 'game',
   initialState: (): GameState => ({
     playerName: '',
+    room: undefined,
     loadings: {
       createRoom: false,
       joinRoom: false,
+      voting: false,
     },
+    currentAnswer: undefined,
   }),
   reducers: {
     selectName(state, {payload}: Action<string> & { payload: string }) {
       state.playerName = payload
     },
     updateRoom(state, {payload}: Action<string> & { payload: Room }) {
+      if (state.room?.ongoingQuiz?.status !== payload.ongoingQuiz?.status) {
+        state.currentAnswer = undefined
+      }
       state.room = payload
     },
     changeLoading(state, {payload}: Action<string> & { payload: { loadingKey: keyof Loadings, value: boolean } }) {
       state.loadings[payload.loadingKey] = payload.value
+    },
+    selectAnswer(state, {payload}: Action<string> & { payload: number }) {
+      state.currentAnswer = payload
     },
   },
 })

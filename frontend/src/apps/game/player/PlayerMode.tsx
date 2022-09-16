@@ -111,9 +111,13 @@ const Pause = ({status}: { status: 'notStarted' | 'betweenRounds' | 'done' }) =>
 
 function QuestionInProgress() {
   const question = useSelector((state: State) => state.game.room?.ongoingQuiz?.currentQuestion)
+  const votingInProgress = useSelector((state: State) => state.game.loadings.voting)
+  const selectedAnswer = useSelector((state: State) => state.game.currentAnswer)
   const dispatch = useDispatch<ThunkDispatch<State, {}, Action>>()
   const vote = (answer: number) => {
-    dispatch(actions.vote(answer))
+    if (answer !== selectedAnswer) {
+      dispatch(actions.vote(answer))
+    }
   }
 
   if (!question) {
@@ -124,8 +128,7 @@ function QuestionInProgress() {
     <QScaleFade in={!!question} initialScale={0.7}>
       <QBox
         background={'white'}
-        paddingY={14}
-        paddingX={16}
+        padding={6}
         borderRadius={36}
         boxShadow="xl"
       >
@@ -140,18 +143,21 @@ function QuestionInProgress() {
               <QHeading size={'lg'}>{question.text}</QHeading>
             </QCenter>
           </QBox>
-          <QSimpleGrid padding={4} columns={2} spacing={10}>
+          <QSimpleGrid columns={2} spacing={10}>
             {
               question.answers.map((answer, index) =>
                 <QButton
                   key={answer}
-                  colorScheme={'green'}
+                  background={index === selectedAnswer ? 'cyan.500' : 'green'}
                   size={'lg'}
                   onClick={() => vote(index)}
                   borderRadius={20}
+                  isLoading={votingInProgress && index === selectedAnswer}
+                  disabled={votingInProgress}
                 >
                   {answer}
-                </QButton>)
+                </QButton>,
+              )
             }
           </QSimpleGrid>
         </QStack>
