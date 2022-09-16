@@ -6,5 +6,4 @@ public interface QuizRepository {
 
     Optional<Quiz> findById(int id);
 
-    void save(Quiz quiz);
 }

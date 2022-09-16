@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "creator": "K",
+    "questions": [
+      {
+        "text": "?",
+        "answers": [
+          {
+            "text": "1",
+            "points": 1000
+          },
+          {
+            "text": "2",
+            "points": -1000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 999,
+    "creator": "this person",
+    "questions": [
+      {
+        "text": "Yes?",
+        "answers": [
+          {
+            "text": "Yes",
+            "points": 100
+          },
+          {
+            "text": "No",
+            "points": 0
+          }
+        ]
+      },
+      {
+        "text": "Is that true?",
+        "answers": [
+          {
+            "text": "Yes",
+            "points": 50
+          },
+          {
+            "text": "No",
+            "points": -25
+          },
+          {
+            "text": "Maybe",
+            "points": 1
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,55 @@
+[
+  {
+    "id": 1000,
+    "creator": "Mystery",
+    "questions": [
+      {
+        "text": "Why is this thing written in Java?",
+        "answers": [
+          {
+            "text": "No idea",
+            "points": -1
+          },
+          {
+            "text": "Because of Spring Boot",
+            "points": 1000
+          },
+          {
+            "text": "But there is a bit of JS too...",
+            "points": 0
+          }
+        ]
+      },
+      {
+        "text": "Is this a *ah**t?",
+        "answers": [
+          {
+            "text": "Yes! 1 to 1!",
+            "points": -321489
+          },
+          {
+            "text": "No. Looks unique!",
+            "points": 1
+          }
+        ]
+      },
+      {
+        "text": "May I keep a question unanswered?",
+        "answers": [
+          {
+            "text": "Yes",
+            "points": 1
+          },
+          {
+            "text": "No",
+            "points": 1
+          },
+          {
+            "text": "Up to you",
+            "points": 2
+          }
+        ]
+      }
+    ]
+  }
+]

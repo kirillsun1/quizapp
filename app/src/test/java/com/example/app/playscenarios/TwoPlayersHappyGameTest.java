@@ -2,14 +2,11 @@ package com.example.app.playscenarios;
 
 import com.example.app.ongoingquiz.CurrentQuestion;
 import com.example.app.ongoingquiz.OngoingQuizStatus;
-import com.example.app.quiz.Answer;
-import com.example.app.quiz.Question;
 import com.example.app.quiz.Quiz;
 import com.example.app.quiz.QuizRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -26,24 +23,9 @@ import static org.hamcrest.Matchers.nullValue;
 
 public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
 
-    private static final Quiz quiz = Quiz.builder()
-            .id(999)
-            .creator("this person")
-            .questions(List.of(
-                    Question.builder()
-                            .text("Yes?")
-                            .answers(List.of(
-                                    new Answer("Yes", 100),
-                                    new Answer("No", 0)))
-                            .build(),
-                    Question.builder()
-                            .text("Is that true?")
-                            .answers(List.of(
-                                    new Answer("Yes", 50),
-                                    new Answer("No", -25),
-                                    new Answer("Maybe", 1)))
-                            .build()))
-            .build();
+    private static final int QUIZ_ID = 999;
+
+    private Quiz quiz;
 
     @Autowired
     private QuizRepository quizRepository;
@@ -61,7 +43,7 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         player.createSession();
         anotherPlayer.createSession();
 
-        quizRepository.save(quiz);
+        quiz = quizRepository.findById(QUIZ_ID).orElseThrow();
 
         String roomCode = moderatorCreatesRoom();
 
