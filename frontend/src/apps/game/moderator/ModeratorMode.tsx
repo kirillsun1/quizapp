@@ -32,7 +32,7 @@ export function ModeratorMode() {
   const room = useSelector((state: State) => state.game.room)
 
   return (
-    <QContainer maxW={'container.lg'} minH={'100vh'}>
+    <QContainer maxW={'container.lg'}>
       {
         !room ? <CreateRoom/> : <InRoom/>
       }
