@@ -26,15 +26,17 @@ const createRoom = createAsyncThunk<void, undefined>(
     server.subscribeToRoomChanges(room!.code, (room) => dispatch(slice.actions.updateRoom(room)))
   })
 
-const joinRoom = createAsyncThunk<void, string>(
+const joinRoom = createAsyncThunk<void, { roomCode: string, onFailure: () => void }>(
   'JOIN_ROOM',
-  async (roomCode, {dispatch}) => {
+  async ({roomCode, onFailure}, {dispatch}) => {
     try {
       dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: true}))
       const room = await server.joinRoom(roomCode)
       if (room) {
         server.subscribeToRoomChanges(roomCode, (room) => dispatch(slice.actions.updateRoom(room)))
         dispatch(slice.actions.updateRoom(room))
+      } else {
+        onFailure()
       }
     } finally {
       dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: false}))

@@ -3,7 +3,7 @@ import { QBox } from '../chakra'
 
 export function QBackground({children}: { children: React.ReactNode }) {
   return (
-    <QBox bgGradient={'linear(19deg, #08AEEA, #2AF598)'}>
+    <QBox bgGradient={'linear(11deg, #74EBD5, #9FACE6)'}>
       {children}
     </QBox>
   )

@@ -4,10 +4,11 @@ export {
 
   // forms
   Button as QButton,
-  ButtonGroup as QButtonGroup,
   Text as QText,
   Heading as QHeading,
   Input as QInput,
+  PinInput as QPinInput,
+  PinInputField as QPinInputField,
 
   CircularProgress as QCircularProgress,
   Badge as QBadge,
@@ -25,16 +26,14 @@ export {
 
   Stack as QStack,
   VStack as QVStack,
+  HStack as QHStack,
 
   SimpleGrid as QSimpleGrid,
-  Grid as QGrid,
-  GridItem as QGridItem,
 
   ScaleFade as QScaleFade,
 
   // flex
   Flex as QFlex,
-  Spacer as QSpacer,
 
   Drawer as QDrawer,
   DrawerOverlay as QDrawerOverlay,

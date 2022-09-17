@@ -6,14 +6,14 @@ import { ChakraProvider, extendTheme, withDefaultColorScheme } from '@chakra-ui/
 const theme = {
   ...extendTheme(
     withDefaultColorScheme({
-      colorScheme: 'green',
+      colorScheme: 'cyan',
     }),
   ),
   styles: {
     global: {
       'body': {
         minHeight: '100vh',
-        color: 'green.600',
+        color: 'cyan.700',
       },
     },
   },

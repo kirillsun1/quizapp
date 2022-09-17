@@ -40,9 +40,11 @@ export function Intro() {
                 placeholder={'Name'}
                 value={name}
                 maxLength={30}
+                size={'lg'}
                 onChange={event => setName(event.target.value)}
               />
               <QButton
+                size={'lg'}
                 isLoading={connecting}
                 disabled={!name}
                 onClick={assignName}

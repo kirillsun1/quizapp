@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { QBox, QButton, QCenter, QHeading, QInput, QStack } from '../../../core/components'
+import { QBox, QCenter, QHeading, QHStack, QPinInput, QPinInputField, QStack, useToast } from '../../../core/components'
 import { actions } from '../state/gameSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { Action, ThunkDispatch } from '@reduxjs/toolkit'
@@ -10,8 +10,19 @@ export function SelectRoom() {
   const joiningRoom = useSelector((state: State) => state.game.loadings.joinRoom)
   const [roomCode, setRoomCode] = useState('')
   const dispatch = useDispatch<ThunkDispatch<State, {}, Action>>()
-  const joinRoom = () => {
-    dispatch(actions.joinRoom(roomCode))
+  const toasts = useToast()
+
+  const onJoiningFailed = () => {
+    setRoomCode('')
+    toasts({
+      status: 'error',
+      title: 'Couldn\'t join room',
+      description: 'Please check PIN and try again',
+    })
+  }
+  const joinRoom = (roomCode: string) => {
+    toasts.closeAll()
+    dispatch(actions.joinRoom({roomCode, onFailure: onJoiningFailed}))
   }
 
   return (
@@ -28,22 +39,23 @@ export function SelectRoom() {
             <QHeading size={'md'}>Enter Room PIN below to join a room.</QHeading>
           </QBox>
 
-          <QStack maxW={'2xl'} direction={'row'}>
-            <QInput
-              disabled={joiningRoom}
-              placeholder={'Room PIN'}
+          <QHStack>
+            <QPinInput
+              autoFocus
               value={roomCode}
-              maxLength={30}
-              onChange={event => setRoomCode(event.target.value)}
-            />
-            <QButton
-              isLoading={joiningRoom}
-              disabled={!roomCode}
-              onClick={joinRoom}
+              onChange={setRoomCode}
+              size={'lg'}
+              isDisabled={joiningRoom}
+              onComplete={joinRoom}
             >
-              Enter
-            </QButton>
-          </QStack>
+              <QPinInputField/>
+              <QPinInputField/>
+              <QPinInputField/>
+              <QPinInputField/>
+              <QPinInputField/>
+              <QPinInputField/>
+            </QPinInput>
+          </QHStack>
         </QStack>
       </QBox>
     </QCenter>
