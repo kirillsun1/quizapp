@@ -121,23 +121,36 @@ function InRoom() {
         </QDrawerContent>
       </QDrawer>
 
-      <QBox
-        background={'white'}
-        paddingY={8}
-        paddingX={16}
-        borderRadius={36}
-        boxShadow="xl"
-      >
-        <QSimpleGrid columns={2} spacingX={8}>
-          <QuizSetup/>
-          <StartGame/>
-        </QSimpleGrid>
-      </QBox>
+      <BeforeQuiz/>
 
       <RoundInProgress/>
 
       <RoundFinished/>
     </QStack>
+  )
+}
+
+function BeforeQuiz() {
+  const gameStarted = useSelector((state: State) =>
+    (state.game.room?.ongoingQuiz?.status ?? OngoingQuizStatus.NOT_STARTED) !== OngoingQuizStatus.NOT_STARTED)
+
+  if (gameStarted) {
+    return null
+  }
+
+  return (
+    <QBox
+      background={'white'}
+      paddingY={8}
+      paddingX={16}
+      borderRadius={36}
+      boxShadow="xl"
+    >
+      <QSimpleGrid columns={2} spacingX={8}>
+        <QuizSetup/>
+        <StartGame/>
+      </QSimpleGrid>
+    </QBox>
   )
 }
 
@@ -255,10 +268,13 @@ function RoundInProgress() {
 
   return (
     <QBox
-      padding={4}
-      borderRadius={4}
+      paddingY={8}
+      paddingX={16}
+      borderRadius={36}
+      boxShadow="xl"
       color={'darkgreen'}
-      background={'green.100'}>
+      background={'green.100'}
+    >
       <QHeading size={'md'}>Question in progress</QHeading>
       <QBox padding={4} borderRadius={4} background={'gray.50'} marginY={4}>
         <QHeading size={'xs'}>{question.text}</QHeading>
