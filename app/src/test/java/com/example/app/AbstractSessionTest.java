@@ -13,11 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import java.io.IOException;
 import java.util.Base64;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Import(WebSocketTestClientConfiguration.class)
@@ -30,7 +26,7 @@ public class AbstractSessionTest {
     @Autowired
     private WebSocketStompClient client;
     @Autowired
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
     @LocalServerPort
     private int port;
 
@@ -51,36 +47,8 @@ public class AbstractSessionTest {
         }
     }
 
-    protected <T> Future<T> expectReply(StompSession session, String destination, Class<T> clazz) {
-        var queue = subscribe(session, destination, clazz);
-        return new CompletableFuture<T>().completeAsync(() -> {
-            try {
-                return queue.take();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    protected <T> BlockingQueue<T> subscribe(StompSession session, String destination, Class<T> clazz) {
-        var handler = createListener(clazz);
-        session.subscribe(destination, handler);
-        return handler.getQueue();
-    }
-
-    protected <T> ResponseMessagesListener<T> createListener(Class<T> clazz) {
-        return new ResponseMessagesListener<>(bytes -> readFromBytes(bytes, clazz));
-    }
-
-    protected <T> T readFromBytes(byte[] bytes, Class<T> clazz) {
-        try {
-            if (bytes == null) {
-                return null;
-            }
-            return objectMapper.readValue(bytes, clazz);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    protected <REQ, RES> RequestReplyOperation.RequestReplyOperationBuilder<REQ, RES> newRequestReplyOperation() {
+        return RequestReplyOperation.<REQ, RES>builder().objectMapper(objectMapper);
     }
 
 }

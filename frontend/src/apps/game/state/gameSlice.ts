@@ -18,12 +18,14 @@ type GameState = {
 const createRoom = createAsyncThunk<void, undefined>(
   'CREATE_ROOM',
   async (__, {dispatch}) => {
-    dispatch(slice.actions.changeLoading({loadingKey: 'createRoom', value: true}))
-    const room = await server.createRoom()
-    dispatch(slice.actions.changeLoading({loadingKey: 'createRoom', value: false}))
-    // TODO: implement case if room could not be created
-    dispatch(slice.actions.updateRoom(room!))
-    server.subscribeToRoomChanges(room!.code, (room) => dispatch(slice.actions.updateRoom(room)))
+    try {
+      dispatch(slice.actions.changeLoading({loadingKey: 'createRoom', value: true}))
+      const room = await server.createRoom()
+      dispatch(slice.actions.updateRoom(room!))
+      server.subscribeToRoomChanges(room!.code, (room) => dispatch(slice.actions.updateRoom(room)))
+    } finally {
+      dispatch(slice.actions.changeLoading({loadingKey: 'createRoom', value: false}))
+    }
   })
 
 const joinRoom = createAsyncThunk<void, { roomCode: string, onFailure: () => void }>(
@@ -32,12 +34,10 @@ const joinRoom = createAsyncThunk<void, { roomCode: string, onFailure: () => voi
     try {
       dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: true}))
       const room = await server.joinRoom(roomCode)
-      if (room) {
-        server.subscribeToRoomChanges(roomCode, (room) => dispatch(slice.actions.updateRoom(room)))
-        dispatch(slice.actions.updateRoom(room))
-      } else {
-        onFailure()
-      }
+      server.subscribeToRoomChanges(roomCode, (room) => dispatch(slice.actions.updateRoom(room)))
+      dispatch(slice.actions.updateRoom(room))
+    } catch (e) {
+      onFailure()
     } finally {
       dispatch(slice.actions.changeLoading({loadingKey: 'joinRoom', value: false}))
     }

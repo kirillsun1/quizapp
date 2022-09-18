@@ -1,22 +1,21 @@
 package com.example.app.playscenarios;
 
 import com.example.app.AbstractSessionTest;
-import com.example.app.RequestReplyOperation;
+import com.example.app.EventsListener;
 import com.example.app.ongoingquiz.events.MoveOnRequest;
-import com.example.app.ongoingquiz.events.MoveOnResponse;
 import com.example.app.ongoingquiz.events.VoteRequest;
-import com.example.app.ongoingquiz.events.VoteResponse;
+import com.example.app.room.Room;
 import com.example.app.room.events.AssignQuizRequest;
-import com.example.app.room.events.AssignQuizResponse;
-import com.example.app.room.events.CreateRoomRequest;
 import com.example.app.room.events.CreateRoomResponse;
-import com.example.app.room.events.JoinRoomRequest;
 import com.example.app.room.events.JoinRoomResponse;
 import com.example.app.room.events.RoomEvent;
 import lombok.Setter;
 import org.springframework.messaging.simp.stomp.StompSession;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class AbstractPlayScenarioTest extends AbstractSessionTest {
 
@@ -28,7 +27,7 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
         @Setter
         protected String room;
 
-        BlockingQueue<RoomEvent> events;
+        BlockingQueue<byte[]> events;
 
         public Joystick(String playerName) {
             this.playerName = playerName;
@@ -39,7 +38,18 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
         }
 
         public void subscribeToRoomEvents() {
-            events = subscribe(session, "/topic/rooms." + room, RoomEvent.class);
+            var handler = new EventsListener();
+            session.subscribe("/topic/rooms." + room, handler);
+            events = handler.getEvents();
+        }
+
+        RoomEvent nextRoomEvent() {
+            try {
+                byte[] response = events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+                return response != null ? objectMapper.readValue(response, RoomEvent.class) : null;
+            } catch (InterruptedException | IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
     }
@@ -50,19 +60,21 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             super("Moderator-" + playerName);
         }
 
-        public CreateRoomResponse createRoom() {
-            return RequestReplyOperation.<CreateRoomRequest, CreateRoomResponse>builder()
-                    .responseMessagesListener(createListener(CreateRoomResponse.class))
+        public Room createRoom() {
+            return AbstractPlayScenarioTest.this.<Object, CreateRoomResponse>newRequestReplyOperation()
+                    .eventsListener(new EventsListener())
                     .session(session)
                     .operation("rooms.create")
-                    .request(new CreateRoomRequest())
+                    .request(Map.of())
+                    .responseClass(CreateRoomResponse.class)
                     .build()
-                    .execute();
+                    .execute()
+                    .getRoom();
         }
 
-        public AssignQuizResponse assignQuiz(int id) {
-            return RequestReplyOperation.<AssignQuizRequest, AssignQuizResponse>builder()
-                    .responseMessagesListener(createListener(AssignQuizResponse.class))
+        public void assignQuiz(int id) {
+            newRequestReplyOperation()
+                    .eventsListener(new EventsListener())
                     .session(session)
                     .operation("rooms/" + room + "/quiz.assign")
                     .request(new AssignQuizRequest(id))
@@ -70,9 +82,9 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
                     .execute();
         }
 
-        public MoveOnResponse moveOn() {
-            return RequestReplyOperation.<MoveOnRequest, MoveOnResponse>builder()
-                    .responseMessagesListener(createListener(MoveOnResponse.class))
+        public void moveOn() {
+            newRequestReplyOperation()
+                    .eventsListener(new EventsListener())
                     .session(session)
                     .operation("rooms/" + room + "/quiz.move-on")
                     .request(new MoveOnRequest())
@@ -87,19 +99,21 @@ public class AbstractPlayScenarioTest extends AbstractSessionTest {
             super("Player-" + playerName);
         }
 
-        public JoinRoomResponse joinRoom() {
-            return RequestReplyOperation.<JoinRoomRequest, JoinRoomResponse>builder()
-                    .responseMessagesListener(createListener(JoinRoomResponse.class))
+        public Room joinRoom() {
+            return AbstractPlayScenarioTest.this.<Object, JoinRoomResponse>newRequestReplyOperation()
+                    .eventsListener(new EventsListener())
                     .session(session)
                     .operation("rooms/" + room + ".join")
-                    .request(new JoinRoomRequest())
+                    .request(Map.of())
+                    .responseClass(JoinRoomResponse.class)
                     .build()
-                    .execute();
+                    .execute()
+                    .getRoom();
         }
 
-        public VoteResponse vote(int choice) {
-            return RequestReplyOperation.<VoteRequest, VoteResponse>builder()
-                    .responseMessagesListener(createListener(VoteResponse.class))
+        public void vote(int choice) {
+            newRequestReplyOperation()
+                    .eventsListener(new EventsListener())
                     .session(session)
                     .operation("rooms/" + room + "/quiz.vote")
                     .request(new VoteRequest(choice))

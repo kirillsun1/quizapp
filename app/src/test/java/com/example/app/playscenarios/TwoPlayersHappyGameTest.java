@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
@@ -34,7 +33,7 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
     private PlayerJoystick anotherPlayer;
 
     @Test
-    void twoPlayersHappy() throws Exception {
+    void twoPlayersHappy() {
         moderator = new ModeratorJoystick(UUID.randomUUID().toString());
         player = new PlayerJoystick(UUID.randomUUID().toString());
         anotherPlayer = new PlayerJoystick(UUID.randomUUID().toString());
@@ -80,8 +79,7 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
     }
 
     private String moderatorCreatesRoom() {
-        var createRoomResponse = moderator.createRoom();
-        var room = createRoomResponse.room();
+        var room = moderator.createRoom();
         assertThat(room, is(notNullValue()));
         assertThat(room.code(), is(notNullValue()));
         assertThat(room.players(), is(empty()));
@@ -94,9 +92,7 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
     }
 
     private void playerJoinsRoom(PlayerJoystick player) {
-        var joinRoomResponse = player.joinRoom();
-        assertThat(joinRoomResponse.ok(), is(true));
-        var room = joinRoomResponse.room();
+        var room = player.joinRoom();
         assertThat(room, is(notNullValue()));
         assertThat(room.code(), is(notNullValue()));
         assertThat(room.players(), hasItem(player.playerName));
@@ -106,21 +102,20 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(player.events.isEmpty(), is(true));
     }
 
-    private void moderatorGetsCorrectEvent() throws Exception {
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+    private void moderatorGetsCorrectEvent() {
+        var moderatorRoomEvent = moderator.nextRoomEvent();
         assertThat(moderatorRoomEvent, is(notNullValue()));
         assertThat(moderatorRoomEvent.room(), is(notNullValue()));
         assertThat(moderatorRoomEvent.room().players(), containsInAnyOrder(player.playerName, anotherPlayer.playerName));
         assertThat(moderatorRoomEvent.room().ongoingQuiz(), is(nullValue()));
     }
 
-    private void moderatorAssignsQuiz() throws Exception {
-        var assignQuizResponse = moderator.assignQuiz(quiz.id());
-        assertThat(assignQuizResponse.ok(), is(true));
+    private void moderatorAssignsQuiz() {
+        moderator.assignQuiz(quiz.id());
 
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var anotherPlayerRoomEvent = anotherPlayer.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var moderatorRoomEvent = moderator.nextRoomEvent();
+        var playerRoomEvent = player.nextRoomEvent();
+        var anotherPlayerRoomEvent = anotherPlayer.nextRoomEvent();
 
         assertThat(moderatorRoomEvent, is(playerRoomEvent));
         assertThat(moderatorRoomEvent, is(anotherPlayerRoomEvent));
@@ -137,13 +132,12 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 0));
     }
 
-    private void moderatorStartsQuiz() throws Exception {
-        var startQuizResponse = moderator.moveOn();
-        assertThat(startQuizResponse.ok(), is(true));
+    private void moderatorStartsQuiz() {
+        moderator.moveOn();
 
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var anotherPlayerRoomEvent = anotherPlayer.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var moderatorRoomEvent = moderator.nextRoomEvent();
+        var playerRoomEvent = player.nextRoomEvent();
+        var anotherPlayerRoomEvent = anotherPlayer.nextRoomEvent();
 
         assertThat(moderatorRoomEvent, is(playerRoomEvent));
         assertThat(moderatorRoomEvent, is(anotherPlayerRoomEvent));
@@ -157,13 +151,12 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.status(), is(OngoingQuizStatus.QUESTION_IN_PROGRESS));
     }
 
-    private void playerVotes(PlayerJoystick player, int choice) throws Exception {
-        var makeChoiceResponse = player.vote(choice);
-        assertThat(makeChoiceResponse.ok(), is(true));
+    private void playerVotes(PlayerJoystick player, int choice) {
+        player.vote(choice);
 
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var anotherPlayerRoomEvent = anotherPlayer.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var moderatorRoomEvent = moderator.nextRoomEvent();
+        var playerRoomEvent = player.nextRoomEvent();
+        var anotherPlayerRoomEvent = anotherPlayer.nextRoomEvent();
 
         // no events expected
         assertThat(moderatorRoomEvent, is(nullValue()));
@@ -172,14 +165,13 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
     }
 
     private void moderatorFinishesRound() {
-        var finishRoundResponse = moderator.moveOn();
-        assertThat(finishRoundResponse.ok(), is(true));
+        moderator.moveOn();
     }
 
-    private void pointsAreCorrect() throws Exception {
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var anotherPlayerRoomEvent = anotherPlayer.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+    private void pointsAreCorrect() {
+        var moderatorRoomEvent = moderator.nextRoomEvent();
+        var playerRoomEvent = player.nextRoomEvent();
+        var anotherPlayerRoomEvent = anotherPlayer.nextRoomEvent();
 
         assertThat(moderatorRoomEvent, is(playerRoomEvent));
         assertThat(moderatorRoomEvent, is(anotherPlayerRoomEvent));
@@ -191,13 +183,12 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 100));
     }
 
-    private void moderatorGoesToTheNextQuestion() throws Exception {
-        var finishRoundResponse = moderator.moveOn();
-        assertThat(finishRoundResponse.ok(), is(true));
+    private void moderatorGoesToTheNextQuestion() {
+        moderator.moveOn();
 
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var anotherPlayerRoomEvent = anotherPlayer.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+        var moderatorRoomEvent = moderator.nextRoomEvent();
+        var playerRoomEvent = player.nextRoomEvent();
+        var anotherPlayerRoomEvent = anotherPlayer.nextRoomEvent();
 
         assertThat(moderatorRoomEvent, is(playerRoomEvent));
         assertThat(moderatorRoomEvent, is(anotherPlayerRoomEvent));
@@ -213,10 +204,10 @@ public class TwoPlayersHappyGameTest extends AbstractPlayScenarioTest {
         assertThat(ongoingQuiz.points(), hasEntry(anotherPlayer.playerName, 100));
     }
 
-    private void pointsAreCorrectQuizIsFinished() throws Exception {
-        var moderatorRoomEvent = moderator.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var playerRoomEvent = player.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
-        var anotherPlayerRoomEvent = anotherPlayer.events.poll(DEFAULT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS);
+    private void pointsAreCorrectQuizIsFinished() {
+        var moderatorRoomEvent = moderator.nextRoomEvent();
+        var playerRoomEvent = player.nextRoomEvent();
+        var anotherPlayerRoomEvent = anotherPlayer.nextRoomEvent();
 
         assertThat(moderatorRoomEvent, is(playerRoomEvent));
         assertThat(moderatorRoomEvent, is(anotherPlayerRoomEvent));

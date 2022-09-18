@@ -1,9 +1,8 @@
 package com.example.app.room;
 
-import com.example.app.core.BaseGameException;
+import com.example.app.core.BaseResponse;
 import com.example.app.core.UserName;
 import com.example.app.room.events.AssignQuizRequest;
-import com.example.app.room.events.AssignQuizResponse;
 import com.example.app.room.events.CreateRoomResponse;
 import com.example.app.room.events.JoinRoomResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,22 +26,14 @@ public class RoomController {
     @MessageMapping("/rooms/{roomCode}.join")
     @SendToUser(broadcast = false)
     public JoinRoomResponse joinRoom(UserName userName, @DestinationVariable String roomCode) {
-        try {
-            return new JoinRoomResponse(true, roomService.joinRoom(roomCode, userName.value()));
-        } catch (BaseGameException ex) {
-            return new JoinRoomResponse(false, null);
-        }
+        return new JoinRoomResponse(roomService.joinRoom(roomCode, userName.value()));
     }
 
     @MessageMapping("/rooms/{roomCode}/quiz.assign")
     @SendToUser(broadcast = false)
-    public AssignQuizResponse assignQuiz(UserName userName, @DestinationVariable String roomCode, AssignQuizRequest request) {
-        try {
-            roomService.assignQuiz(userName.value(), roomCode, request.quizId());
-            return new AssignQuizResponse(true);
-        } catch (BaseGameException ex) {
-            return new AssignQuizResponse(false);
-        }
+    public BaseResponse assignQuiz(UserName userName, @DestinationVariable String roomCode, AssignQuizRequest request) {
+        roomService.assignQuiz(userName.value(), roomCode, request.quizId());
+        return BaseResponse.ok();
     }
 
 }

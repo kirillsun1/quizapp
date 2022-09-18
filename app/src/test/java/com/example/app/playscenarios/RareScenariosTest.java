@@ -1,17 +1,16 @@
 package com.example.app.playscenarios;
 
-import com.example.app.room.events.JoinRoomResponse;
+import com.example.app.EventsListener;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import java.util.UUID;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RareScenariosTest extends AbstractPlayScenarioTest {
 
@@ -21,9 +20,10 @@ class RareScenariosTest extends AbstractPlayScenarioTest {
         moderator.createSession();
         moderator.setRoom("012345");
 
-        JoinRoomResponse response = moderator.joinRoom();
+        Executable executable = moderator::joinRoom;
 
-        assertThat(response.ok(), is(false));
+        var exception = assertThrows(RuntimeException.class, executable);
+        assertThat(exception.getMessage(), containsString("RoomNotFound"));
     }
 
     @Test
@@ -36,26 +36,22 @@ class RareScenariosTest extends AbstractPlayScenarioTest {
         player.createSession();
         anotherPlayer.createSession();
 
-        var roomCode = moderator.createRoom().room().code();
+        var moderatorEventsListener = new EventsListener();
+        var anotherPlayerEventsListener = new EventsListener();
+
+        var roomCode = moderator.createRoom().code();
         player.setRoom(roomCode);
 
-        var anotherSessionJoinRoomResponseFuture =
-                expectReply(anotherPlayer.session, "/user/queue/responses/rooms.join", JoinRoomResponse.class);
+        var destination = "/user/queue/responses/rooms.join";
+        anotherPlayer.session.subscribe(destination, anotherPlayerEventsListener);
+        moderator.session.subscribe(destination, moderatorEventsListener);
 
-        JoinRoomResponse responseForPlayer = player.joinRoom();
-        JoinRoomResponse responseForAnotherPlayer = getImmediatelyAndSafely(anotherSessionJoinRoomResponseFuture);
+        var responseForPlayer = player.joinRoom();
 
         assertThat(responseForPlayer, is(notNullValue()));
-        assertThat(responseForAnotherPlayer, is(nullValue()));
+        assertThat(anotherPlayerEventsListener.getEvents().isEmpty(), is(true));
+        assertThat(moderatorEventsListener.getEvents().isEmpty(), is(true));
     }
 
-    private <T> T getImmediatelyAndSafely(Future<T> future) {
-        try {
-            future.cancel(true);
-            return future.get();
-        } catch (CancellationException | ExecutionException | InterruptedException ignored) {
-            return null;
-        }
-    }
 
 }
