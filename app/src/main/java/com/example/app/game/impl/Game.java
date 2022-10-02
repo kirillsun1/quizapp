@@ -8,13 +8,11 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: this class is not thread-safe. Probably locking should be added to repository.
-
 @Data
 @Builder
-class MutableRoom {
+class Game {
 
-    private final String code;
+    private final String roomCode;
 
     private Integer quizId;
 
@@ -35,5 +33,6 @@ class MutableRoom {
     public boolean showQuestion() {
         return status == OngoingQuizStatus.QUESTION_IN_PROGRESS;
     }
+
 
 }

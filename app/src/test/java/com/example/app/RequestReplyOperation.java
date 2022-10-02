@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Builder
 public class RequestReplyOperation<REQ, RES> {
 
-    private static final int DEFAULT_TIMEOUT_IN_MS = 1000;
+    private static final int DEFAULT_TIMEOUT_IN_MS = 5000;
 
     private final ObjectMapper objectMapper;
     private final StompSession session;

@@ -24,7 +24,7 @@ import java.util.Objects;
 class GameService implements RoomService, OngoingQuizService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final MutableRoomRepository roomRepository;
+    private final LockingGameRepository gameRepository;
     private final UniqueRoomCodeGenerator codeGenerator;
     private final QuizRepository quizRepository;
     private final RoomMapper roomMapper;
@@ -34,12 +34,12 @@ class GameService implements RoomService, OngoingQuizService {
         Assert.notNull(moderator, "Moderator cannot be null.");
 
         var uniqueCode = codeGenerator.generate();
-        var room = MutableRoom.builder()
-                .code(uniqueCode)
+        var game = Game.builder()
+                .roomCode(uniqueCode)
                 .moderator(moderator)
                 .build();
-        roomRepository.save(room);
-        return roomMapper.toPublic(room);
+        gameRepository.register(game);
+        return roomMapper.toPublic(game);
     }
 
     @Override
@@ -47,10 +47,13 @@ class GameService implements RoomService, OngoingQuizService {
         Assert.notNull(code, "Room code cannot be null.");
         Assert.notNull(player, "Player cannot be null.");
 
-        var room = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
-        room.getPlayersPoints().putIfAbsent(player, 0);
+        var game = gameRepository.findAndLock(code).orElseThrow(RoomNotFoundException::new);
+        game.getPlayersPoints().putIfAbsent(player, 0);
+
+        gameRepository.saveAndRelease(game);
         notifyAboutRoomChange(code);
-        return roomMapper.toPublic(room);
+
+        return roomMapper.toPublic(game);
     }
 
     @Override
@@ -58,11 +61,14 @@ class GameService implements RoomService, OngoingQuizService {
         Assert.notNull(code, "Room code cannot be null.");
         Assert.notNull(requester, "Moderator cannot be null.");
 
-        MutableRoom room = findRoomForModerator(requester, code);
+        Game game = findModeratorsGame(requester, code);
         if (quizRepository.findById(quizId).isEmpty()) {
+            gameRepository.release(game);
             throw new QuizNotFoundException();
         }
-        room.setQuizId(quizId);
+        game.setQuizId(quizId);
+
+        gameRepository.saveAndRelease(game);
         notifyAboutRoomChange(code);
     }
 
@@ -71,11 +77,15 @@ class GameService implements RoomService, OngoingQuizService {
         Assert.notNull(roomCode, "Room code cannot be null.");
         Assert.notNull(requester, "Moderator cannot be null.");
 
-        MutableRoom room = roomRepository.findByCode(roomCode).orElseThrow(RoomNotFoundException::new);
-        if (room.getModerator().equals(requester)) {
+        Game game = gameRepository.findAndLock(roomCode).orElseThrow(RoomNotFoundException::new);
+        if (game.getModerator().equals(requester)) {
+            gameRepository.release(game);
             throw new ModeratorIsNotPlayerException();
         }
-        room.getVotesByQuestions().get(room.getCurrentQuestion()).put(requester, choice);
+
+        game.getVotesByQuestions().get(game.getCurrentQuestion()).put(requester, choice);
+
+        gameRepository.saveAndRelease(game);
     }
 
     @Override
@@ -83,40 +93,42 @@ class GameService implements RoomService, OngoingQuizService {
         Assert.notNull(code, "Room code cannot be null.");
         Assert.notNull(requester, "Moderator cannot be null.");
 
-        MutableRoom room = findRoomForModerator(requester, code);
+        Game game = findModeratorsGame(requester, code);
 
         boolean sendEvent = false;
-        switch (room.getStatus()) {
+        switch (game.getStatus()) {
             case NOT_STARTED -> {
-                if (room.getQuizId() == null) {
+                if (game.getQuizId() == null) {
+                    gameRepository.release(game);
                     throw new QuizNotAssignedException();
                 }
-                moveToQuestion(room, 0);
+                moveToQuestion(game, 0);
                 sendEvent = true;
             }
             case WAITING -> {
-                moveToQuestion(room, room.getCurrentQuestion() + 1);
+                moveToQuestion(game, game.getCurrentQuestion() + 1);
                 sendEvent = true;
             }
             case QUESTION_IN_PROGRESS -> {
-                finishRound(room);
+                finishRound(game);
                 sendEvent = true;
             }
         }
 
+        gameRepository.saveAndRelease(game);
         if (sendEvent) {
             notifyAboutRoomChange(code);
         }
     }
 
 
-    private void moveToQuestion(MutableRoom room, int question) {
+    private void moveToQuestion(Game room, int question) {
         room.getVotesByQuestions().putIfAbsent(question, new HashMap<>());
         room.setCurrentQuestion(question);
         room.setStatus(OngoingQuizStatus.QUESTION_IN_PROGRESS);
     }
 
-    private void finishRound(MutableRoom room) {
+    private void finishRound(Game room) {
         var quiz = quizRepository.findById(room.getQuizId()).orElseThrow(QuizNotFoundException::new);
 
         if (room.getCurrentQuestion() == quiz.questions().size() - 1) {
@@ -141,12 +153,13 @@ class GameService implements RoomService, OngoingQuizService {
                 });
     }
 
-    private MutableRoom findRoomForModerator(String requester, String code) {
-        MutableRoom mutableRoom = roomRepository.findByCode(code).orElseThrow(RoomNotFoundException::new);
-        if (!requester.equals(mutableRoom.getModerator())) {
+    private Game findModeratorsGame(String requester, String code) {
+        Game game = gameRepository.findAndLock(code).orElseThrow(RoomNotFoundException::new);
+        if (!requester.equals(game.getModerator())) {
+            gameRepository.release(game);
             throw new PlayerIsNotModeratorException();
         }
-        return mutableRoom;
+        return game;
     }
 
     private void notifyAboutRoomChange(String code) {

@@ -18,27 +18,27 @@ class RoomMapper {
 
     private final QuizRepository quizRepository;
 
-    Room toPublic(MutableRoom mutableRoom) {
+    Room toPublic(Game game) {
         var builder = Room.builder()
-                .code(mutableRoom.getCode())
-                .moderator(mutableRoom.getModerator())
-                .players(mutableRoom.getPlayersPoints().keySet());
-        var quiz = findQuiz(mutableRoom.getQuizId());
+                .code(game.getRoomCode())
+                .moderator(game.getModerator())
+                .players(game.getPlayersPoints().keySet());
+        var quiz = findQuiz(game.getQuizId());
         if (quiz != null) {
             builder.ongoingQuiz(OngoingQuiz.builder()
-                    .currentQuestion(buildCurrentQuestion(quiz, mutableRoom))
-                    .points(mutableRoom.getPlayersPoints())
-                    .status(mutableRoom.getStatus())
+                    .currentQuestion(buildCurrentQuestion(quiz, game))
+                    .points(game.getPlayersPoints())
+                    .status(game.getStatus())
                     .build());
         }
         return builder.build();
     }
 
-    private CurrentQuestion buildCurrentQuestion(Quiz quiz, MutableRoom mutableRoom) {
-        if (!mutableRoom.showQuestion()) {
+    private CurrentQuestion buildCurrentQuestion(Quiz quiz, Game game) {
+        if (!game.showQuestion()) {
             return null;
         }
-        var currentQuestion = mutableRoom.getCurrentQuestion();
+        var currentQuestion = game.getCurrentQuestion();
         Assert.isTrue(
                 currentQuestion >= 0 && currentQuestion < quiz.questions().size(),
                 "Quiz[id=" + quiz.id() + "] doesn't have question with index " + currentQuestion);

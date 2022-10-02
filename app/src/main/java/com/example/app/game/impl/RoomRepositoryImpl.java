@@ -11,13 +11,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 class RoomRepositoryImpl implements RoomRepository {
 
-    private final MutableRoomRepository mutableRoomRepository;
+    private final LockingGameRepository lockingGameRepository;
     private final RoomMapper roomMapper;
 
     @Override
     public Optional<Room> findByCode(String code) {
-        return mutableRoomRepository.findByCode(code)
-                .map(roomMapper::toPublic);
+        return lockingGameRepository.find(code).map(roomMapper::toPublic);
     }
 
 }
