@@ -1,6 +1,5 @@
 package com.example.app.game.impl;
 
-
 import com.example.app.ongoingquiz.OngoingQuizStatus;
 import lombok.Builder;
 import lombok.Data;
