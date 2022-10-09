@@ -29,10 +29,9 @@ class LockingGameRepository {
     public Optional<Game> findAndLock(String code) {
         Optional<Game> gameOptional = find(code);
         if (gameOptional.isPresent()) {
-            Game game = gameOptional.get();
             Lock lock = locks.get(code);
             lock.lock();
-            log.debug("Locked room {}", game.getRoomCode());
+            log.debug("Locked room {}", code);
         }
         return gameOptional;
     }
